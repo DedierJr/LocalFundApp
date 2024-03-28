@@ -1,26 +1,23 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert } from 'react-native';
-import { firebase } from '@firebase/app';
-import '@firebase/auth';
-import { Usuario } from '../model/Usuario';
+import { auth } from "../firebase"; // Importe apenas 'auth' do Firebase, não 'firestore'
 
-const LoginScreen = () => {
+const Login = () => {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
 
     const handleLogin = async () => {
         try {
-            const response = await firebase.auth().signInWithEmailAndPassword(email, senha);
+            const response = await auth.signInWithEmailAndPassword(email, senha); // Use 'auth' aqui
             if (response.user) {
                 // Login bem-sucedido
-                const user = new Usuario({ id: response.user.uid, email });
-                console.log(user.toString());
+                console.log('Login bem-sucedido:', response.user.email);
                 // Redirecionar para a próxima tela
             } else {
                 Alert.alert('Erro', 'Usuário não encontrado');
             }
         } catch (error) {
-            console.error(error);
+            console.error('Erro ao fazer login:', error);
             Alert.alert('Erro', 'Ocorreu um erro ao fazer login');
         }
     };
@@ -47,4 +44,4 @@ const LoginScreen = () => {
     );
 };
 
-export default LoginScreen;
+export default Login;
