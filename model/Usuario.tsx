@@ -6,6 +6,8 @@ export class Usuario {
     public email: string;
     public senhaHash: string; // Usaremos senhaHash em vez de senha
     public datanascimento: string;
+    public fotoPerfil?: string; // URL da foto de perfil
+    public bio?: string; // Bio do usuário
 
     constructor(obj?: Partial<Usuario>) {
         if (obj) {
@@ -14,6 +16,8 @@ export class Usuario {
             this.email = obj.email || '';
             this.senhaHash = obj.senhaHash || '';
             this.datanascimento = obj.datanascimento || '';
+            this.fotoPerfil = obj.fotoPerfil || undefined;
+            this.bio = obj.bio || undefined;
         }
     }
 
@@ -31,7 +35,9 @@ export class Usuario {
             nome: this.nome,
             email: this.email,
             senhaHash: this.senhaHash, // Agora armazenamos o hash da senha
-            datanascimento: this.datanascimento
+            datanascimento: this.datanascimento,
+            fotoPerfil: this.fotoPerfil,
+            bio: this.bio
         };
     }
 
@@ -40,7 +46,9 @@ export class Usuario {
             id: this.id,
             nome: this.nome,
             email: this.email,
-            datanascimento: this.datanascimento
+            datanascimento: this.datanascimento,
+            fotoPerfil: this.fotoPerfil,
+            bio: this.bio
         };
     }
 }

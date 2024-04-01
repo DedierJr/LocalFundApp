@@ -1,18 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Alert } from 'react-native';
-import { auth } from "../firebase"; // Importe apenas 'auth' do Firebase, não 'firestore'
+import { auth } from "../firebase";
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
+    const [usuario, setUsuario] = useState(null); // Estado para armazenar o usuário logado
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+            if (user) {
+                // Usuário está logado
+                setUsuario(user);
+            } else {
+                // Usuário não está logado
+                setUsuario(null);
+            }
+        });
+
+        return unsubscribe; // Função de limpeza para remover o observador ao desmontar o componente
+    }, []);
 
     const handleLogin = async () => {
         try {
-            const response = await auth.signInWithEmailAndPassword(email, senha); // Use 'auth' aqui
+            const response = await auth.signInWithEmailAndPassword(email, senha);
             if (response.user) {
                 // Login bem-sucedido
                 console.log('Login bem-sucedido:', response.user.email);
-                // Redirecionar para a próxima tela
             } else {
                 Alert.alert('Erro', 'Usuário não encontrado');
             }
@@ -40,6 +54,7 @@ const Login = () => {
                 secureTextEntry
             />
             <Button title="Login" onPress={handleLogin} />
+            {usuario && <Text>Você está logado como {usuario.email}</Text>}
         </View>
     );
 };
