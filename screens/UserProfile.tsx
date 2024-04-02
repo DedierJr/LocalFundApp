@@ -1,8 +1,9 @@
+///home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
 import React from 'react';
 import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import { Usuario } from '../model/Usuario'; // Importe o modelo de usuário
 
-const PerfilUsuario = ({ usuario }: { usuario: Usuario }) => {
+const UserProfile = ({ usuario }: { usuario: Usuario }) => {
   return (
     <View style={styles.container}>
       <Image
@@ -51,4 +52,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PerfilUsuario;
+export default UserProfile;
