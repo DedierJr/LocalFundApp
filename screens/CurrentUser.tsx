@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import { Usuario } from '../model/Usuario'; // Importe o modelo de usuário
-import { firestore } from '../firebase';
+import { auth, firestore } from '../firebase';
 
-const UserProfile = ({ route }) => {
-  const { userId } = route.params;
+const CurrentUser = () => {
   const [usuario, setUsuario] = useState({} as Usuario);
 
   useEffect(() => {
     const carregarUsuario = async () => {
       try {
+        const userId = auth.currentUser.uid;
         const usuarioRef = firestore.collection('Usuario').doc(userId);
         const doc = await usuarioRef.get();
         if (doc.exists) {
@@ -23,7 +23,7 @@ const UserProfile = ({ route }) => {
     };
 
     carregarUsuario();
-  }, [userId]);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -73,4 +73,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default UserProfile;
+export default CurrentUser;

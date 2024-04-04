@@ -1,3 +1,4 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/routes/drawer.routes.tsx
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 
