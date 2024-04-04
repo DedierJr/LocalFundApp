@@ -1,9 +1,14 @@
 ///home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import { Usuario } from '../model/Usuario'; // Importe o modelo de usuário
 
-const UserProfile = ({ usuario }: { usuario: Usuario }) => {
+const UserProfile = () => {
+  const [usuario, setUsuario] = useState({} as Usuario);
+
+  const getUsuario = () => {
+
+  }
   return (
     <View style={styles.container}>
       <Image

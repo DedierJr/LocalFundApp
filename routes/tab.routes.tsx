@@ -5,9 +5,9 @@ import AdicionarPost from "../screens/AddPosts"
 
 const Tab = createBottomTabNavigator();
 
-export default function Tabroutes(){
+export default function Tabroutes({route}){
     return(
-        <Tab.Navigator screenOptions={{headerShown: false}}>
+        <Tab.Navigator initialRouteName={route.params.tab} screenOptions={{headerShown: false}}>
             <Tab.Screen
                 name="Mapa"
                 component={Mapa}
