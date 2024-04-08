@@ -4,8 +4,7 @@ import { View, Text, StyleSheet, Image } from 'react-native';
 import { Usuario } from '../model/Usuario'; // Importe o modelo de usuário
 import { firestore } from '../firebase'; // Importe o firestore do Firebase
 
-const UserProfile: React.FC<{ userId: string }> = ({ route }) => {
-  const { userId } = route.params;
+const UserProfile: React.FC<{ userId: string }> = ({ userId }) => {
   const [user, setUser] = useState<Usuario | null>(null);
 
   useEffect(() => {

@@ -37,7 +37,7 @@ const ListarPosts: React.FC = () => {
   }, []);
 
   const navigateToUserProfile = (userId: string) => {
-    navigation.navigate('PerfilUsuario', { userId });
+    navigation.navigate('UserProfile', { userId });
   };
 
   return (
