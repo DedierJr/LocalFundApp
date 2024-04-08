@@ -1,29 +1,26 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import { Usuario } from '../model/Usuario'; // Importe o modelo de usuário
-import { firestore } from '../firebase';
+import { auth, firestore } from '../firebase'; // Importe o auth e o firestore do Firebase
 
-const UserProfile = ({ route }) => {
-  const { userId } = route.params;
+const UserProfile = () => {
   const [usuario, setUsuario] = useState({} as Usuario);
 
   useEffect(() => {
-    const carregarUsuario = async () => {
-      try {
-        const usuarioRef = firestore.collection('Usuario').doc(userId);
-        const doc = await usuarioRef.get();
-        if (doc.exists) {
-          setUsuario(doc.data());
-        } else {
-          console.log('Usuário não encontrado');
-        }
-      } catch (error) {
-        console.error('Erro ao carregar usuário:', error);
+    const fetchUserData = async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userData = await firestore.collection('Usuario').doc(currentUser.uid).get();
+        setUsuario(userData.data() as Usuario);
       }
     };
+    fetchUserData();
+  }, []);
 
-    carregarUsuario();
-  }, [userId]);
+  const handleEditProfile = () => {
+    // Implemente a navegação para a tela de edição de perfil aqui
+  };
 
   return (
     <View style={styles.container}>
@@ -36,9 +33,7 @@ const UserProfile = ({ route }) => {
       <Text style={styles.bio}>{usuario.bio}</Text>
       <Button
         title="Editar Perfil"
-        onPress={() => {
-          // Navegue para a tela de edição de perfil
-        }}
+        onPress={handleEditProfile}
       />
     </View>
   );

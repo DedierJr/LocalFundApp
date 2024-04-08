@@ -4,12 +4,15 @@ import { auth, firestore, storage } from '../firebase'; // Adicione o storage do
 import { Usuario } from '../model/Usuario';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker'; // Importe o ImagePicker do Expo
+import * as FileSystem from 'expo-file-system'; // Importe o FileSystem do Expo
 
 const Registro = () => {
   const [formUsuario, setFormUsuario] = useState<Partial<Usuario>>({});
   const [fotoPerfil, setFotoPerfil] = useState<string>(''); // Altere para string
   const refUsuario = firestore.collection("Usuario");
   const navigation = useNavigation();
+
+  const defaultPfp = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
 
   const criarRegistro = async () => {
     try {
@@ -57,31 +60,41 @@ const Registro = () => {
         quality: 1,
       });
   
-      if (!result.canceled) { // Substitua "cancelled" por "canceled"
-        setFotoPerfil(result.assets[0].uri); // Acesse o array "assets" para obter a URI da imagem
+      if (!result.canceled) {
+        setFotoPerfil(result.assets[0].uri);
       }
     } catch (error) {
       console.error('Erro ao escolher foto de perfil:', error);
     }
-  };  
+  };
 
   const uploadFotoPerfil = async (userId: string | undefined) => {
     if (!fotoPerfil || !userId) {
-      return '';
+      console.log('Foto de perfil ou userId inválidos');
+      return defaultPfp;
     }
-
+  
+    console.log('Fazendo upload da foto de perfil:', fotoPerfil);
+  
     try {
-      const response = await fetch(fotoPerfil);
+      const { uri } = await FileSystem.copyAsync({
+        from: fotoPerfil,
+        to: `${FileSystem.documentDirectory}fotosPerfil/${userId}`,
+      });
+      
+      const response = await fetch(uri);
       const blob = await response.blob();
       const ref = storage.ref().child(`fotosPerfil/${userId}`);
       await ref.put(blob);
       const url = await ref.getDownloadURL();
+      console.log('Upload da foto de perfil concluído:', url);
       return url;
     } catch (error) {
       console.error('Erro ao fazer upload da foto de perfil:', error);
-      return '';
+      return defaultPfp;
     }
   };
+  
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>

@@ -14,7 +14,7 @@ export default function Tabroutes({route}){
                 component={Mapa}
             />
             <Tab.Screen
-                name="Add Post"
+                name="Perfil"
                 component={CurrentUser}
             />
         </Tab.Navigator>
