@@ -2,90 +2,93 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { firestore } from '../firebase';
-import { useNavigation } from '@react-navigation/core';
+import { useNavigation } from '@react-navigation/native';
+import { Post } from '../model/Post';
+import { Usuario } from '../model/Usuario';
 
-const ListarPosts = () => {
-    const [posts, setPosts] = useState([]);
-    const [users, setUsers] = useState({});
-    const navigation = useNavigation();
+const ListarPosts: React.FC = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [users, setUsers] = useState<{ [key: string]: Usuario }>({});
+  const navigation = useNavigation();
 
-    useEffect(() => {
-        const unsubscribePosts = firestore.collection('posts').onSnapshot((snapshot) => {
-            const postsData = [];
-            snapshot.forEach((doc) => {
-                postsData.push({ id: doc.id, ...doc.data() });
-            });
-            setPosts(postsData);
-        });
+  useEffect(() => {
+    // Buscar posts do Firestore
+    const unsubscribePosts = firestore.collection('posts').onSnapshot((snapshot) => {
+      const postsData: Post[] = [];
+      snapshot.forEach((doc) => {
+        postsData.push({ id: doc.id, ...doc.data() } as Post);
+      });
+      setPosts(postsData);
+    });
 
-        const unsubscribeUsers = firestore.collection('users').onSnapshot((snapshot) => {
-            const usersData = {};
-            snapshot.forEach((doc) => {
-                usersData[doc.id] = doc.data();
-            });
-            setUsers(usersData);
-        });
+    // Buscar usuários do Firestore
+    const unsubscribeUsers = firestore.collection('users').onSnapshot((snapshot) => {
+      const usersData: { [key: string]: Usuario } = {};
+      snapshot.forEach((doc) => {
+        usersData[doc.id] = doc.data() as Usuario;
+      });
+      setUsers(usersData);
+    });
 
-        return () => {
-            unsubscribePosts();
-            unsubscribeUsers();
-        };
-    }, []);
-
-    const navigateToUserProfile = (userId) => {
-        const userData = users[userId];
-        navigation.navigate('UserProfile', { userData });
+    return () => {
+      unsubscribePosts();
+      unsubscribeUsers();
     };
+  }, []);
 
-    return (
-        <View style={styles.container}>
-            <Text style={styles.header}>Listagem de Posts:</Text>
-            <FlatList
-                data={posts}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <View style={styles.postContainer}>
-                        <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
-                            <Text style={styles.postTitle}>{item.title}</Text>
-                            <Text style={styles.postContent}>{item.content}</Text>
-                            <Text style={styles.postAuthor}>Por: {users[item.userId]?.name}</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
-            />
-        </View>
-    );
+  const navigateToUserProfile = (userId: string) => {
+    navigation.navigate('PerfilUsuario', { userId });
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.header}>Listagem de Posts:</Text>
+      <FlatList
+        data={posts}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.postContainer}>
+            <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
+              <Text style={styles.postTitle}>{item.title}</Text>
+              <Text style={styles.postContent}>{item.content}</Text>
+              <Text style={styles.postAuthor}>Por: {users[item.userId]?.nome}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-    },
-    header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-    },
-    postContainer: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 10,
-    },
-    postTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 5,
-    },
-    postContent: {
-        marginBottom: 5,
-    },
-    postAuthor: {
-        fontStyle: 'italic',
-        color: '#666',
-    },
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  postContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+  },
+  postTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  postContent: {
+    marginBottom: 5,
+  },
+  postAuthor: {
+    fontStyle: 'italic',
+    color: '#666',
+  },
 });
 
 export default ListarPosts;

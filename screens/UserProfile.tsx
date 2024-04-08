@@ -1,40 +1,32 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, Button } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { Usuario } from '../model/Usuario'; // Importe o modelo de usuário
-import { auth, firestore } from '../firebase'; // Importe o auth e o firestore do Firebase
+import { firestore } from '../firebase'; // Importe o firestore do Firebase
 
-const UserProfile = () => {
-  const [usuario, setUsuario] = useState({} as Usuario);
+const UserProfile: React.FC<{ userId: string }> = ({ route }) => {
+  const { userId } = route.params;
+  const [user, setUser] = useState<Usuario | null>(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        const userData = await firestore.collection('Usuario').doc(currentUser.uid).get();
-        setUsuario(userData.data() as Usuario);
+    // Buscar usuário do Firestore
+    const userRef = firestore.collection('Usuario').doc(userId);
+    userRef.get().then((doc) => {
+      if (doc.exists) {
+        setUser(doc.data() as Usuario);
       }
-    };
-    fetchUserData();
-  }, []);
+    });
+  }, [userId]);
 
-  const handleEditProfile = () => {
-    // Implemente a navegação para a tela de edição de perfil aqui
-  };
+  if (!user) {
+    return <Text>Carregando...</Text>;
+  }
 
   return (
     <View style={styles.container}>
-      <Image
-        source={{ uri: usuario.fotoPerfil }}
-        style={styles.fotoPerfil}
-      />
-      <Text style={styles.nome}>{usuario.nome}</Text>
-      <Text style={styles.email}>{usuario.email}</Text>
-      <Text style={styles.bio}>{usuario.bio}</Text>
-      <Button
-        title="Editar Perfil"
-        onPress={handleEditProfile}
-      />
+      <Text style={styles.name}>{user.nome}</Text>
+      {user.fotoPerfil && <Image style={styles.photo} source={{ uri: user.fotoPerfil }} />}
+      {user.bio && <Text style={styles.bio}>{user.bio}</Text>}
     </View>
   );
 };
@@ -44,27 +36,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
   },
-  fotoPerfil: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    marginBottom: 20,
-  },
-  nome: {
+  name: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  email: {
-    fontSize: 16,
+  photo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     marginBottom: 10,
   },
   bio: {
     fontSize: 16,
-    marginBottom: 20,
     textAlign: 'center',
+    paddingHorizontal: 20,
   },
 });
 

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import { Usuario } from '../model/Usuario'; // Importe o modelo de usuário
 import { auth, firestore } from '../firebase';
+import { useNavigation } from '@react-navigation/native';
 
 const CurrentUser = () => {
   const [usuario, setUsuario] = useState({} as Usuario);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const carregarUsuario = async () => {
@@ -34,12 +36,6 @@ const CurrentUser = () => {
       <Text style={styles.nome}>{usuario.nome}</Text>
       <Text style={styles.email}>{usuario.email}</Text>
       <Text style={styles.bio}>{usuario.bio}</Text>
-      <Button
-        title="Editar Perfil"
-        onPress={() => {
-          // Navegue para a tela de edição de perfil
-        }}
-      />
     </View>
   );
 };
