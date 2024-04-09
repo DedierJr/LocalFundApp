@@ -1,10 +1,11 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/screens/ListarPosts.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native'; // Importe TouchableOpacity aqui
 import { firestore } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
 import { Post } from '../model/Post';
 import { Usuario } from '../model/Usuario';
+import AddPostBtn from '../components/AddPostBtn'; // Importe o componente AddPostBtn
 
 const ListarPosts: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -56,6 +57,7 @@ const ListarPosts: React.FC = () => {
           </View>
         )}
       />
+      <AddPostBtn />
     </View>
   );
 };

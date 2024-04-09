@@ -4,6 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import DrawerRoutes from "./drawer.routes";
 import UserProfile from "../screens/UserProfile";
+import AddPosts from "../screens/AddPosts";
 
 const Stack = createStackNavigator();
 
@@ -13,6 +14,7 @@ export default function Routes() {
             <Stack.Navigator initialRouteName={DrawerRoutes} screenOptions={{headerShown: false}}>
                 <Stack.Screen name="DrawerRoutes" component={DrawerRoutes} />
                 <Stack.Screen name="UserProfile" component={UserProfile} />
+                <Stack.Screen name="AddPosts" component={AddPosts} />
             </Stack.Navigator>
         </NavigationContainer>
     );

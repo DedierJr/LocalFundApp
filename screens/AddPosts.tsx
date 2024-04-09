@@ -1,4 +1,4 @@
-// Tela de adicionar post
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/AddPosts.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert } from 'react-native';
 import { auth, firestore } from '../firebase';
