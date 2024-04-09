@@ -1,20 +1,29 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
-import { Usuario } from '../model/Usuario'; // Importe o modelo de usuário
-import { firestore } from '../firebase'; // Importe o firestore do Firebase
+import { Usuario } from '../model/Usuario';
+import { firestore } from '../firebase';
 
 const UserProfile: React.FC<{ userId: string }> = ({ userId }) => {
   const [user, setUser] = useState<Usuario | null>(null);
 
   useEffect(() => {
-    // Buscar usuário do Firestore
-    const userRef = firestore.collection('Usuario').doc(userId);
-    userRef.get().then((doc) => {
-      if (doc.exists) {
-        setUser(doc.data() as Usuario);
+    const getUser = async () => {
+      try {
+        const userRef = firestore.collection('usuario').doc(userId);
+        const doc = await userRef.get();
+
+        if (doc.exists) {
+          setUser(doc.data() as Usuario);
+        } else {
+          console.log('Usuário não encontrado');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar usuário:', error);
       }
-    });
+    };
+
+    getUser();
   }, [userId]);
 
   if (!user) {
