@@ -6,9 +6,9 @@ import ListarPosts from "../screens/ListarPosts";
 
 const Tab = createBottomTabNavigator();
 
-export default function Tabroutes({ route }) {
+export default function Tabroutes() {
     return (
-        <Tab.Navigator initialRouteName={route.params.tab} screenOptions={({ route }) => ({
+        <Tab.Navigator screenOptions={({ route }) => ({
             headerShown: false,
             tabBarIcon: ({ focused, color, size }) => {
                 let iconName;

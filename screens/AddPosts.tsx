@@ -1,6 +1,5 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/AddPosts.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert } from 'react-native';
+import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import { auth, firestore } from '../firebase';
 
 const AdicionarPost = () => {
@@ -28,15 +27,17 @@ const AdicionarPost = () => {
     };
 
     return (
-        <View>
-            <Text>Título:</Text>
+        <View style={styles.container}>
+            <Text style={styles.label}>Título:</Text>
             <TextInput
+                style={styles.input}
                 value={title}
                 onChangeText={setTitle}
                 placeholder="Digite o título do post"
             />
-            <Text>Conteúdo:</Text>
+            <Text style={styles.label}>Conteúdo:</Text>
             <TextInput
+                style={[styles.input, styles.multilineInput]}
                 value={content}
                 onChangeText={setContent}
                 placeholder="Digite o conteúdo do post"
@@ -46,5 +47,26 @@ const AdicionarPost = () => {
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        padding: 20,
+    },
+    label: {
+        fontSize: 18,
+        marginBottom: 5,
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        padding: 10,
+        marginBottom: 10,
+        fontSize: 16,
+    },
+    multilineInput: {
+        height: 100,
+    },
+});
 
 export default AdicionarPost;

@@ -31,15 +31,12 @@ export default function DrawerRoutes() {
         <Drawer.Screen
             name='home'
             component={TabRoutes}
-            initialParams={{tab: "Mapa"}}
         />
         <Drawer.Screen name="Registro" component={RegistroScreen} />
         <Drawer.Screen name="Login" component={Login} />
         <Drawer.Screen name="Perfil" component={CurrentUser}/>
         <Drawer.Screen name="Listar Posts" component={ListarPosts} />
         <Drawer.Screen name="Adicionar Post" component={AdicionarPost} />
-        <Drawer.Screen name="Manter Marcador" component={ManterMarcadorScreen} />
-        <Drawer.Screen name="Mapa" component={MapaScreen} />
       </Drawer.Navigator>
   );
 }

@@ -1,3 +1,4 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/CurrentUser.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import { Usuario } from '../model/Usuario'; // Importe o modelo de usuário
