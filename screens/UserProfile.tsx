@@ -4,13 +4,15 @@ import { View, Text, StyleSheet, Image } from 'react-native';
 import { Usuario } from '../model/Usuario';
 import { firestore } from '../firebase';
 
-const UserProfile: React.FC<{ userId: string }> = ({ userId }) => {
+const UserProfile = ({route}: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
 
   useEffect(() => {
-    const getUser = async () => {
+    //console.log(route.params.userId)
+    const {userId} = route.params;
+    const getUser = async () =>{
       try {
-        const userRef = firestore.collection('usuario').doc(userId);
+        const userRef = firestore.collection('Usuario').doc(userId);
         const doc = await userRef.get();
 
         if (doc.exists) {
@@ -24,7 +26,7 @@ const UserProfile: React.FC<{ userId: string }> = ({ userId }) => {
     };
 
     getUser();
-  }, [userId]);
+  }, []);
 
   if (!user) {
     return <Text>Carregando...</Text>;
