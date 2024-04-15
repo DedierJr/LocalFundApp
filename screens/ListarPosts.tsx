@@ -1,11 +1,10 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/ListarPosts.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native'; // Importe TouchableOpacity aqui
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { firestore } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
 import { Post } from '../model/Post';
 import { Usuario } from '../model/Usuario';
-import AddPostBtn from '../components/AddPostBtn'; // Importe o componente AddPostBtn
+import AddPostBtn from '../components/AddPostBtn';
 
 const ListarPosts: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -17,6 +16,7 @@ const ListarPosts: React.FC = () => {
     const unsubscribePosts = firestore.collection('posts').onSnapshot((snapshot) => {
       const postsData: Post[] = [];
       snapshot.forEach((doc) => {
+        //console.log(doc.data()) //! LOG
         postsData.push({ id: doc.id, ...doc.data() } as Post);
       });
       setPosts(postsData);
@@ -31,6 +31,7 @@ const ListarPosts: React.FC = () => {
       setUsers(usersData);
     });
 
+
     return () => {
       unsubscribePosts();
       unsubscribeUsers();
@@ -40,7 +41,7 @@ const ListarPosts: React.FC = () => {
   const navigateToUserProfile = (userId: string) => {
     navigation.navigate('UserProfile', { userId });
   };
-
+  
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Listagem de Posts:</Text>
@@ -56,7 +57,7 @@ const ListarPosts: React.FC = () => {
             </TouchableOpacity>
           </View>
         )}
-      />
+        />
       <AddPostBtn />
     </View>
   );
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
   },
   postAuthor: {
     fontStyle: 'italic',
-    color: '#666',
+    color: 'black',
   },
 });
 

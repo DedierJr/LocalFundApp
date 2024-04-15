@@ -27,16 +27,14 @@ const Drawer = createDrawerNavigator();
 
 export default function DrawerRoutes() {
   return (
-      <Drawer.Navigator initialRouteName="Registro">
+      <Drawer.Navigator initialRouteName="Login">
         <Drawer.Screen
             name='home'
             component={TabRoutes}
         />
-        <Drawer.Screen name="Registro" component={RegistroScreen} />
         <Drawer.Screen name="Login" component={Login} />
         <Drawer.Screen name="Perfil" component={CurrentUser}/>
         <Drawer.Screen name="Listar Posts" component={ListarPosts} />
-        <Drawer.Screen name="Adicionar Post" component={AdicionarPost} />
       </Drawer.Navigator>
   );
 }

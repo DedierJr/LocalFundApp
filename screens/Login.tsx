@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Alert } from 'react-native';
+import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import { auth } from "../firebase";
+import { useNavigation } from '@react-navigation/native';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
     const [usuario, setUsuario] = useState(null); // Estado para armazenar o usuário logado
+    const navigation = useNavigation();
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -36,27 +38,70 @@ const Login = () => {
         }
     };
 
+    const handlePress = () => {
+        navigation.navigate('Registro');
+    };
+
     return (
-        <View>
-            <Text>Email:</Text>
+        <View style={styles.container}>
             <TextInput
+                style={styles.input}
                 value={email}
                 onChangeText={setEmail}
                 placeholder="Digite seu email"
                 keyboardType="email-address"
                 autoCapitalize="none"
             />
-            <Text>Senha:</Text>
             <TextInput
+                style={styles.input}
                 value={senha}
                 onChangeText={setSenha}
                 placeholder="Digite sua senha"
                 secureTextEntry
             />
-            <Button title="Login" onPress={handleLogin} />
+            <View style={styles.buttonContainer}>
+                <Button
+                    title="Login"
+                    onPress={handleLogin}
+                    color="blue"
+                />
+            </View>
+            <View style={styles.buttonContainer}>
+                <Button
+                    title="Registrar"
+                    onPress={handlePress}
+                    color="blue"
+                />
+            </View>
             {usuario && <Text>Você está logado como {usuario.email}</Text>}
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    label: {
+        fontSize: 18,
+        marginBottom: 5,
+    },
+    input: {
+        width: '100%',
+        height: 40,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        padding: 10,
+        marginBottom: 10,
+    },
+    buttonContainer: {
+        width: '100%',
+        marginVertical: 2,
+    },
+});
 
 export default Login;

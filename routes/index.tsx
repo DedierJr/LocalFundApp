@@ -6,6 +6,7 @@ import DrawerRoutes from "./drawer.routes";
 import TabRoutes from "./tab.routes";
 import UserProfile from "../screens/UserProfile";
 import AddPosts from "../screens/AddPosts";
+import Registro from "../screens/Registro";
 
 const Stack = createStackNavigator();
 
@@ -17,6 +18,7 @@ export default function Routes() {
                 <Stack.Screen name="TabRoutes" component={TabRoutes} />
                 <Stack.Screen name="UserProfile" component={UserProfile} />
                 <Stack.Screen name="AddPosts" component={AddPosts} />
+                <Stack.Screen name="Registro" component={Registro} />
             </Stack.Navigator>
         </NavigationContainer>
     );
