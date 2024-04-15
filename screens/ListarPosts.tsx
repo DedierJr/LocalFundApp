@@ -11,18 +11,57 @@ const ListarPosts: React.FC = () => {
   const [users, setUsers] = useState<{ [key: string]: Usuario }>({});
   const navigation = useNavigation();
 
+  const fetchUsers = async () => {
+    try {
+      const usersRef = firestore.collection('Usuario');
+      const snapshot = await usersRef.get();
+  
+      const usersData: { [key: string]: Usuario } = {};
+      snapshot.forEach((doc) => {
+        usersData[doc.id] = doc.data() as Usuario;
+      });
+  
+      const usuarios = Object.values(usersData); // Convertendo para array de usuários
+      console.log('\n\n\nNomes dos usuários:');
+      usuarios.map((usuario) => console.log(usuario.nome)); //! LOG
+  
+    } catch (error) {
+      console.error('Erro ao buscar usuários:', error);
+    }
+  };
+
+  const fetchPosts = async () => {
+    try {
+      const postsRef = firestore.collection('posts');
+      const snapshot = await postsRef.get();
+
+      const postsData: Post[] = [];
+      snapshot.forEach((doc) => {
+        postsData.push({ id: doc.id, ...doc.data() } as Post);
+      });
+
+      console.log('\n\n\nPosts:');
+      postsData.forEach((post) => {
+        console.log(`ID: ${post.id}, Título: ${post.title}, Conteúdo: ${post.content}, Autor: ${post.userId}`);
+      });
+
+      setPosts(postsData);
+      const posts = Object.values(postsData);
+      posts.map((post) => console.log(post.userId)); //! LOG
+    } catch (error) {
+      console.error('Erro ao buscar posts:', error);
+    }
+  };
+
   useEffect(() => {
-    // Buscar posts do Firestore
     const unsubscribePosts = firestore.collection('posts').onSnapshot((snapshot) => {
       const postsData: Post[] = [];
       snapshot.forEach((doc) => {
-        //console.log(doc.data()) //! LOG
         postsData.push({ id: doc.id, ...doc.data() } as Post);
       });
       setPosts(postsData);
     });
 
-    // Buscar usuários do Firestore
     const unsubscribeUsers = firestore.collection('users').onSnapshot((snapshot) => {
       const usersData: { [key: string]: Usuario } = {};
       snapshot.forEach((doc) => {
@@ -31,6 +70,8 @@ const ListarPosts: React.FC = () => {
       setUsers(usersData);
     });
 
+    fetchUsers();
+    fetchPosts();
 
     return () => {
       unsubscribePosts();
@@ -57,7 +98,7 @@ const ListarPosts: React.FC = () => {
             </TouchableOpacity>
           </View>
         )}
-        />
+      />
       <AddPostBtn />
     </View>
   );
