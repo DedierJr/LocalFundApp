@@ -1,3 +1,4 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/model/Marcador.tsx
 import { firestore } from '../firebase.js';
 
 export class Marcador {

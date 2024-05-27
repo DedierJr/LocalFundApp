@@ -1,10 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { auth, firestore } from '../firebase';
+import { Marcador } from '../model/Marcador';
 
 const AdicionarPost = () => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [marcadores, setMarcadores] = useState<Marcador[]>([]);
+    const [selectedMarcador, setSelectedMarcador] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        const fetchMarcadores = async () => {
+            try {
+                const snapshot = await firestore.collection('Marcador').get();
+                const marcadoresData: Marcador[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Marcador));
+                setMarcadores(marcadoresData);
+            } catch (error) {
+                console.error('Erro ao buscar marcadores:', error);
+            }
+        };
+
+        fetchMarcadores();
+    }, []);
 
     const handleAdicionarPost = async () => {
         try {
@@ -17,7 +35,8 @@ const AdicionarPost = () => {
                 userId,
                 title,
                 content,
-                createdAt: new Date()
+                createdAt: new Date(),
+                marcadorId: selectedMarcador || null
             });
             Alert.alert('Sucesso', 'Post adicionado com sucesso');
         } catch (error) {
@@ -43,6 +62,16 @@ const AdicionarPost = () => {
                 placeholder="Digite o conteúdo do post"
                 multiline
             />
+            <Text style={styles.label}>Marcador:</Text>
+            <Picker
+                selectedValue={selectedMarcador}
+                onValueChange={(itemValue) => setSelectedMarcador(itemValue)}
+            >
+                <Picker.Item label="Nenhum" value={undefined} />
+                {marcadores.map((marcador) => (
+                    <Picker.Item key={marcador.id} label={marcador.titulo} value={marcador.id} />
+                ))}
+            </Picker>
             <Button title="Adicionar Post" onPress={handleAdicionarPost} />
         </View>
     );

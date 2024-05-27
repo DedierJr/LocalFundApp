@@ -1,3 +1,4 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/ManterMarcador.tsx
 import "react-native-gesture-handler";
 import { useNavigation } from "@react-navigation/core";
 import React, { useEffect, useState } from "react";
