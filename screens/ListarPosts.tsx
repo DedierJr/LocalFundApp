@@ -1,16 +1,15 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/ListarPosts.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { firestore } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
 import { Post } from '../model/Post';
 import { Usuario } from '../model/Usuario';
-import { Marcador } from '../model/Marcador';
 import AddPostBtn from '../components/AddPostBtn';
 
 const ListarPosts: React.FC = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [users, setUsers] = useState<{ [key: string]: Usuario }>({});
-    const [marcadores, setMarcadores] = useState<{ [key: string]: Marcador }>({});
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -31,19 +30,8 @@ const ListarPosts: React.FC = () => {
             setPosts(postsData);
         };
 
-        const fetchMarcadores = async () => {
-            const marcadoresRef = firestore.collection('Marcador');
-            const snapshot = await marcadoresRef.get();
-            const marcadoresData: { [key: string]: Marcador } = {};
-            snapshot.forEach((doc) => {
-                marcadoresData[doc.id] = doc.data() as Marcador;
-            });
-            setMarcadores(marcadoresData);
-        };
-
         fetchUsers();
         fetchPosts();
-        fetchMarcadores();
 
         const unsubscribePosts = firestore.collection('posts').onSnapshot((snapshot) => {
             const postsData: Post[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
@@ -58,18 +46,9 @@ const ListarPosts: React.FC = () => {
             setUsers(usersData);
         });
 
-        const unsubscribeMarcadores = firestore.collection('Marcador').onSnapshot((snapshot) => {
-            const marcadoresData: { [key: string]: Marcador } = {};
-            snapshot.forEach((doc) => {
-                marcadoresData[doc.id] = doc.data() as Marcador;
-            });
-            setMarcadores(marcadoresData);
-        });
-
         return () => {
             unsubscribePosts();
             unsubscribeUsers();
-            unsubscribeMarcadores();
         };
     }, []);
 
@@ -89,9 +68,9 @@ const ListarPosts: React.FC = () => {
                             <Text style={styles.postTitle}>{item.title}</Text>
                             <Text style={styles.postContent}>{item.content}</Text>
                             <Text style={styles.postAuthor}>Por: {users[item.userId]?.nome}</Text>
-                            {item.marcadorId && (
-                                <Text style={styles.postMarcador}>
-                                    Marcador: {marcadores[item.marcadorId]?.titulo}
+                            {item.lat && item.long && (
+                                <Text style={styles.postLocation}>
+                                    Localização: ({item.lat}, {item.long})
                                 </Text>
                             )}
                         </TouchableOpacity>
@@ -130,11 +109,10 @@ const styles = StyleSheet.create({
     },
     postAuthor: {
         fontStyle: 'italic',
-        color: 'black',
     },
-    postMarcador: {
-        fontStyle: 'italic',
-        color: 'grey',
+    postLocation: {
+        marginTop: 5,
+        color: '#555',
     },
 });
 
