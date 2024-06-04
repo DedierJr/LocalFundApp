@@ -11,23 +11,29 @@ const SearchUsers = () => {
   const handleSearch = async (text) => {
     setQuery(text);
     if (text.length > 2) {
-      const usersRef = firestore.collection('users');
+      const usersRef = firestore.collection('Usuario');
       const snapshot = await usersRef
         .where('username', '>=', text)
         .where('username', '<=', text + '\uf8ff')
         .get();
-        
+      
       const users = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+
+      console.log("Users found:", users); // Adicione esta linha para verificar os usuários encontrados
+
       setResults(users);
+    } else {
+      console.log("Query too short"); // Adicione esta linha para verificar quando a consulta é muito curta
+      setResults([]); // Limpa a lista de resultados se o texto de pesquisa for menor que 3 caracteres
     }
   };
 
   const handleAddFriend = async (userId) => {
     const currentUser = auth.currentUser;
-    const userRef = firestore.collection('users').doc(currentUser.uid);
+    const userRef = firestore.collection('Usuario').doc(currentUser.uid);
 
     await userRef.update({
       friends: firebase.firestore.FieldValue.arrayUnion(userId)
