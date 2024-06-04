@@ -22,7 +22,6 @@ const AdicionarPost = () => {
             }
         };
 
-        fetchMarcadores();
     }, []);
 
     const handleAdicionarPost = async () => {
@@ -63,16 +62,6 @@ const AdicionarPost = () => {
                 placeholder="Digite o conteúdo do post"
                 multiline
             />
-            <Text style={styles.label}>Marcador:</Text>
-            <Picker
-                selectedValue={selectedMarcador}
-                onValueChange={(itemValue) => setSelectedMarcador(itemValue)}
-            >
-                <Picker.Item label="Nenhum" value={undefined} />
-                {marcadores.map((marcador) => (
-                    <Picker.Item key={marcador.id} label={marcador.titulo} value={marcador.id} />
-                ))}
-            </Picker>
             <Button title="Adicionar Post" onPress={handleAdicionarPost} />
         </View>
     );
@@ -86,6 +75,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         marginBottom: 5,
     },
+
     input: {
         borderWidth: 1,
         borderColor: '#ccc',

@@ -29,7 +29,7 @@ export default function DrawerRoutes() {
   return (
       <Drawer.Navigator initialRouteName="Login">
         <Drawer.Screen
-            name='home'
+            name='Home'
             component={TabRoutes}
         />
         <Drawer.Screen name="Login" component={Login} />

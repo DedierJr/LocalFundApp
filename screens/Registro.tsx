@@ -1,35 +1,37 @@
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, Alert } from 'react-native';
-import { auth, firestore, storage } from '../firebase'; // Adicione o storage do Firebase
+import { auth, firestore, storage } from '../firebase';
 import { Usuario } from '../model/Usuario';
 import { useNavigation } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker'; // Importe o ImagePicker do Expo
-import * as FileSystem from 'expo-file-system'; // Importe o FileSystem do Expo
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 
 const Registro = () => {
   const [formUsuario, setFormUsuario] = useState<Partial<Usuario>>({});
-  const [fotoPerfil, setFotoPerfil] = useState<string>(''); // Altere para string
+  const [fotoPerfil, setFotoPerfil] = useState<string>('');
   const refUsuario = firestore.collection("Usuario");
   const navigation = useNavigation();
 
-  const defaultPfp = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
+  const defaultPfp = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
 
   const criarRegistro = async () => {
     try {
       const userCredentials = await auth.createUserWithEmailAndPassword(formUsuario.email || '', formUsuario.senha || '');
-      
-      const urlFotoPerfil = await uploadFotoPerfil(userCredentials.user?.uid); // Passar o userId aqui
+
+      const urlFotoPerfil = await uploadFotoPerfil(userCredentials.user?.uid);
 
       if (userCredentials.user) {
         const refComIdUsuario = refUsuario.doc(userCredentials.user.uid);
 
         await refComIdUsuario.set({
           id: userCredentials.user.uid,
-          nome: formUsuario.nome,
+          username: formUsuario.username, // Inclua o campo username
+          nickname: formUsuario.nickname, // Inclua o campo nickname
           email: formUsuario.email,
           datanascimento: formUsuario.datanascimento,
           fotoPerfil: urlFotoPerfil,
-          bio: formUsuario.bio
+          bio: formUsuario.bio,
+          friends: [] // Inicializa a lista de amigos vazia
         });
 
         console.log('Registered with:', userCredentials.user.email);
@@ -52,14 +54,14 @@ const Registro = () => {
         Alert.alert('Permissão negada', 'Você precisa permitir o acesso à galeria para selecionar uma foto.');
         return;
       }
-  
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
       });
-  
+
       if (!result.canceled) {
         setFotoPerfil(result.assets[0].uri);
       }
@@ -73,15 +75,15 @@ const Registro = () => {
       console.log('Foto de perfil ou userId inválidos');
       return defaultPfp;
     }
-  
+
     console.log('Fazendo upload da foto de perfil:', fotoPerfil);
-  
+
     try {
       const { uri } = await FileSystem.copyAsync({
         from: fotoPerfil,
         to: `${FileSystem.documentDirectory}fotosPerfil/${userId}`,
       });
-      
+
       const response = await fetch(uri);
       const blob = await response.blob();
       const ref = storage.ref().child(`fotosPerfil/${userId}`);
@@ -95,32 +97,37 @@ const Registro = () => {
     }
   };
   
-
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <View style={styles.inputContainer}>
         <TextInput
-          placeholder="Nome"
-          value={formUsuario.nome}
-          onChangeText={nome => setFormUsuario({ ...formUsuario, nome: nome })}
+          placeholder="Username"
+          value={formUsuario.username}
+          onChangeText={username => setFormUsuario({ ...formUsuario, username })}
           style={styles.input}
         />
         <TextInput
           placeholder="Email"
           value={formUsuario.email}
-          onChangeText={email => setFormUsuario({ ...formUsuario, email: email })}
+          onChangeText={email => setFormUsuario({ ...formUsuario, email })}
           style={styles.input}
         />
         <TextInput
           placeholder="Senha"
           value={formUsuario.senha}
-          onChangeText={senha => setFormUsuario({ ...formUsuario, senha: senha })}
+          onChangeText={senha => setFormUsuario({ ...formUsuario, senha })}
           style={styles.input}
         />
         <TextInput
           placeholder="Data Nascimento"
           value={formUsuario.datanascimento}
-          onChangeText={datanascimento => setFormUsuario({ ...formUsuario, datanascimento: datanascimento })}
+          onChangeText={datanascimento => setFormUsuario({ ...formUsuario, datanascimento })}
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Nickname"
+          value={formUsuario.nickname}
+          onChangeText={nickname => setFormUsuario({ ...formUsuario, nickname })}
           style={styles.input}
         />
         <TouchableOpacity onPress={escolherFotoPerfil} style={styles.button}>
@@ -130,7 +137,7 @@ const Registro = () => {
         <TextInput
           placeholder="Bio"
           value={formUsuario.bio}
-          onChangeText={bio => setFormUsuario({ ...formUsuario, bio: bio })}
+          onChangeText={bio => setFormUsuario({ ...formUsuario, bio })}
           style={styles.input}
         />
       </View>
@@ -155,7 +162,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   inputContainer: {
-    width: '80%'
+    width: '80%',
   },
   input: {
     backgroundColor: 'white',

@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from '@expo/vector-icons'; // Importe Ionicons do pacote @expo/vector-icons
 import Mapa from "../screens/Mapa";
 import ListarPosts from "../screens/ListarPosts";
+import SearchUsers from "../screens/SearchUsers";
 
 const Tab = createBottomTabNavigator();
 
@@ -15,8 +16,10 @@ export default function Tabroutes() {
 
                 if (route.name === 'Mapa') {
                     iconName = focused ? 'map' : 'map-outline';
-                } else if (route.name === 'Home') {
+                } else if (route.name === 'Posts') { // Renomeie 'Home' para 'Posts'
                     iconName = focused ? 'home' : 'home-outline';
+                } else if (route.name === 'Search') {
+                    iconName = focused ? 'search' : 'search-outline';
                 }
 
                 // Você pode retornar qualquer componente aqui para exibir o ícone desejado
@@ -28,8 +31,12 @@ export default function Tabroutes() {
                 component={Mapa}
             />
             <Tab.Screen
-                name="Home"
+                name="Posts" // Renomeie 'Home' para 'Posts'
                 component={ListarPosts}
+            />
+            <Tab.Screen
+                name="Search"
+                component={SearchUsers}
             />
         </Tab.Navigator>
     );

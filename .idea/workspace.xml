@@ -4,7 +4,15 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7a71101d-aa9c-48e5-aa17-c44c9a7d31e9" name="Changes" comment="" />
+    <list default="true" id="7a71101d-aa9c-48e5-aa17-c44c9a7d31e9" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/Usuario.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/model/Usuario.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/drawer.routes.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/routes/drawer.routes.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/routes/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/tab.routes.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/routes/tab.routes.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/AddPosts.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/screens/AddPosts.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/Registro.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/screens/Registro.tsx" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
