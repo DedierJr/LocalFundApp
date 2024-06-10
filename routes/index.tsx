@@ -9,6 +9,7 @@ import AddPosts from "../screens/AddPosts";
 import Registro from "../screens/Registro";
 import DetalhesPost from "../screens/DetalhesPost";
 import SearchUsers from "../screens/SearchUsers";
+import ChatScreen from "../screens/ChatScreen";
 
 const Stack = createStackNavigator();
 
@@ -23,6 +24,7 @@ export default function Routes() {
                 <Stack.Screen name="Registro" component={Registro} />
                 <Stack.Screen name="Post" component={DetalhesPost} />
                 <Stack.Screen name="SearchUsers" component={SearchUsers} />
+                <Stack.Screen name="Chat" component={ChatScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

@@ -42,7 +42,7 @@ export default function Tabroutes() {
                 component={SearchUsers}
             />
             <Tab.Screen
-                name="Chats"
+                name="Mensagens"
                 component={ChatListScreen}
                 initialParams={{ userId: 'user_id_placeholder' }} // Adicionar userId como parâmetro
             />
