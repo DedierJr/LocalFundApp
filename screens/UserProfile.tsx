@@ -1,12 +1,12 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
-import { createChat } from '../services/chatService';
+import { createChat, findChatByParticipants } from '../services/chatService';
 
 const UserProfile = ({ route, navigation }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
+  const [chatId, setChatId] = useState<string | null>(null);
   const { userId } = route.params; // ID do usuário do perfil
 
   useEffect(() => {
@@ -28,6 +28,22 @@ const UserProfile = ({ route, navigation }: any) => {
     getUser();
   }, [userId]);
 
+  useEffect(() => {
+    const checkChat = async () => {
+      const currentUserId = auth.currentUser?.uid;
+
+      if (!currentUserId || !userId) {
+        console.error('IDs de usuário inválidos.');
+        return;
+      }
+
+      const existingChatId = await findChatByParticipants([userId, currentUserId]);
+      setChatId(existingChatId);
+    };
+
+    checkChat();
+  }, [userId]);
+
   const handleChat = async () => {
     const currentUserId = auth.currentUser?.uid;
 
@@ -36,12 +52,16 @@ const UserProfile = ({ route, navigation }: any) => {
       return;
     }
 
-    try {
-      const chatId = await createChat([userId, currentUserId]);
-      navigation.navigate('Chat', { chatId, userId: currentUserId });
-    } catch (error) {
-      console.error('Erro ao criar chat:', error);
+    if (!chatId) {
+      try {
+        const newChatId = await createChat([userId, currentUserId]);
+        setChatId(newChatId);
+      } catch (error) {
+        console.error('Erro ao criar chat:', error);
+      }
     }
+
+    navigation.navigate('Chat', { chatId: chatId || '', userId: currentUserId });
   };
 
   if (!user) {

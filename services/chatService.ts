@@ -1,3 +1,4 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/services/chatService.ts
 import { firestore } from '../firebase';
 import { Chat } from '../model/Chat';
 import { Message } from '../model/Message';
