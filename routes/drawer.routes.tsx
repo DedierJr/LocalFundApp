@@ -7,15 +7,8 @@ import RegistroScreen from '../screens/Registro'; // Importe a tela de registro
 import AdicionarPost from '../screens/AddPosts'; // Importe a tela de adicionar post
 import ListarPosts from '../screens/ListarPosts'; // Importe a tela de listar posts
 import CurrentUser from "../screens/CurrentUser";
-import ManterMarcador from '../screens/ManterMarcador';
 import Mapa from '../screens/Mapa';
 import TabRoutes from './tab.routes';
-
-function ManterMarcadorScreen() {
-  return (
-   <ManterMarcador />
-  );
-}
 
 function MapaScreen() {
   return (

@@ -1,23 +1,21 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import { Usuario } from '../model/Usuario';
-import { firestore } from '../firebase';
+import { firestore, auth } from '../firebase';
+import { createChat } from '../services/chatService';
 
-const UserProfile = ({ route }: any) => {
+const UserProfile = ({ route, navigation }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
+  const { userId } = route.params; // ID do usuário do perfil
 
   useEffect(() => {
-    const { userId } = route.params;
-    console.log('User ID:', userId); // Log para verificar o userId
-
     const getUser = async () => {
       try {
         const userRef = firestore.collection('Usuario').doc(userId);
         const doc = await userRef.get();
 
         if (doc.exists) {
-          console.log('User data:', doc.data()); // Log para verificar os dados do usuário
           setUser(doc.data() as Usuario);
         } else {
           console.log('Usuário não encontrado');
@@ -28,7 +26,23 @@ const UserProfile = ({ route }: any) => {
     };
 
     getUser();
-  }, [route.params]);
+  }, [userId]);
+
+  const handleChat = async () => {
+    const currentUserId = auth.currentUser?.uid;
+
+    if (!currentUserId || !userId) {
+      console.error('IDs de usuário inválidos.');
+      return;
+    }
+
+    try {
+      const chatId = await createChat([userId, currentUserId]);
+      navigation.navigate('Chat', { chatId, userId: currentUserId });
+    } catch (error) {
+      console.error('Erro ao criar chat:', error);
+    }
+  };
 
   if (!user) {
     return <Text>Carregando...</Text>;
@@ -47,6 +61,7 @@ const UserProfile = ({ route }: any) => {
           ))}
         </View>
       )}
+      <Button title="Iniciar Chat" onPress={handleChat} />
     </View>
   );
 };

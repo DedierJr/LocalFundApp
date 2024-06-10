@@ -1,3 +1,5 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/ListarPosts.tsx
+
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { firestore } from '../firebase';
@@ -72,7 +74,6 @@ const ListarPosts: React.FC = () => {
                             <Text style={styles.postTitle}>{item.title}</Text>
                             <Text style={styles.postContent}>{item.content}</Text>
                             <Text style={styles.postAuthor}>Por: {users[item.userId]?.username}</Text>
-                            {console.log('Post:', item)}
                             {item.lat && item.long && (
                                 <Text style={styles.postLocation}>
                                     Localização: ({item.lat}, {item.long})

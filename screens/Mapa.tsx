@@ -4,7 +4,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import MeuEstilo from '../estiloMapa.js';
 import { useNavigation } from '@react-navigation/native';
-import { firestore } from '../firebase.js';
+import { firestore, auth } from '../firebase.js';
 import meuestilo from '../meuestilo.js';
 import { Post } from '../model/Post';
 import DetalhesPost from './DetalhesPost'; // Importe o componente DetalhesPost
@@ -49,13 +49,25 @@ const Mapa = () => {
     };
 
     const salvar = async () => {
-        const post = {
-            ...formPost,
-            createdAt: new Date()
-        };
-        await firestore.collection('posts').add(post);
-        Alert.alert("Sucesso", "Post adicionado com sucesso");
-        limparFormulario();
+        try {
+            const userId = auth.currentUser?.uid;
+            if (!userId) {
+                Alert.alert("Erro", "Usuário não está logado.");
+                return;
+            }
+            const post: Post = {
+                id: '',
+                userId,
+                ...formPost,
+                createdAt: new Date()
+            };
+            await firestore.collection('posts').add(post);
+            Alert.alert("Sucesso", "Post adicionado com sucesso");
+            limparFormulario();
+        } catch (error) {
+            Alert.alert("Erro", "Ocorreu um erro ao salvar o post.");
+            console.error("Erro ao salvar o post:", error);
+        }
     };
 
     return (

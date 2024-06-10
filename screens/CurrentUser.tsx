@@ -1,73 +1,126 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/CurrentUser.tsx
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/ListarPosts.tsx
+
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, Button } from 'react-native';
-import { Usuario } from '../model/Usuario'; // Importe o modelo de usuário
-import { auth, firestore } from '../firebase';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { firestore } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
+import { Post } from '../model/Post';
+import { Usuario } from '../model/Usuario';
+import AddPostBtn from '../components/AddPostBtn';
 
-const CurrentUser = () => {
-  const [usuario, setUsuario] = useState({} as Usuario);
-  const navigation = useNavigation();
+const ListarPosts: React.FC = () => {
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [users, setUsers] = useState<{ [key: string]: Usuario }>({});
+    const navigation = useNavigation();
 
-  useEffect(() => {
-    const carregarUsuario = async () => {
-      try {
-        const userId = auth.currentUser.uid;
-        const usuarioRef = firestore.collection('Usuario').doc(userId);
-        const doc = await usuarioRef.get();
-        if (doc.exists) {
-          setUsuario(doc.data());
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const usersRef = firestore.collection('Usuario');
+            const snapshot = await usersRef.get();
+            const usersData: { [key: string]: Usuario } = {};
+            snapshot.forEach((doc) => {
+                usersData[doc.id] = doc.data() as Usuario;
+            });
+            setUsers(usersData);
+        };
+
+        const fetchPosts = async () => {
+            const postsRef = firestore.collection('posts');
+            const snapshot = await postsRef.get();
+            const postsData: Post[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+            setPosts(postsData);
+        };
+
+        fetchUsers();
+        fetchPosts();
+
+        const unsubscribePosts = firestore.collection('posts').onSnapshot((snapshot) => {
+            const postsData: Post[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+            setPosts(postsData);
+        });
+
+        const unsubscribeUsers = firestore.collection('Usuario').onSnapshot((snapshot) => {
+            const usersData: { [key: string]: Usuario } = {};
+            snapshot.forEach((doc) => {
+                usersData[doc.id] = doc.data() as Usuario;
+            });
+            setUsers(usersData);
+        });
+
+        return () => {
+            unsubscribePosts();
+            unsubscribeUsers();
+        };
+    }, []);
+
+    const navigateToUserProfile = (userId: string) => {
+        if (userId) {
+            console.log('Navigating to user profile with ID:', userId); // Log para verificar a navegação
+            navigation.navigate('UserProfile', { userId });
         } else {
-          console.log('Usuário não encontrado');
+            console.error('User ID is undefined');
         }
-      } catch (error) {
-        console.error('Erro ao carregar usuário:', error);
-      }
     };
 
-    carregarUsuario();
-  }, []);
-
-  return (
-    <View style={styles.container}>
-      <Image
-        source={{ uri: usuario.fotoPerfil }}
-        style={styles.fotoPerfil}
-      />
-      <Text style={styles.nome}>{usuario.nome}</Text>
-      <Text style={styles.email}>{usuario.email}</Text>
-      <Text style={styles.bio}>{usuario.bio}</Text>
-    </View>
-  );
+    return (
+        <View style={styles.container}>
+            <Text style={styles.header}>Listagem de Posts:</Text>
+            <FlatList
+                data={posts}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                    <View style={styles.postContainer}>
+                        <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
+                            <Text style={styles.postTitle}>{item.title}</Text>
+                            <Text style={styles.postContent}>{item.content}</Text>
+                            <Text style={styles.postAuthor}>Por: {users[item.userId]?.username}</Text>
+                            {console.log('Post:', item)}
+                            {item.lat && item.long && (
+                                <Text style={styles.postLocation}>
+                                    Localização: ({item.lat}, {item.long})
+                                </Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                )}
+            />
+            <AddPostBtn />
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  fotoPerfil: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    marginBottom: 20,
-  },
-  nome: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  email: {
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  bio: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
+    container: {
+        flex: 1,
+        padding: 20,
+    },
+    header: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+    },
+    postContainer: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 10,
+        padding: 10,
+        marginBottom: 10,
+    },
+    postTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    postContent: {
+        marginBottom: 5,
+    },
+    postAuthor: {
+        fontStyle: 'italic',
+    },
+    postLocation: {
+        marginTop: 5,
+        color: '#555',
+    },
 });
 
-export default CurrentUser;
+export default ListarPosts;
