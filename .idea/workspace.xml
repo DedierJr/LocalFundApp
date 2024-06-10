@@ -6,7 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="7a71101d-aa9c-48e5-aa17-c44c9a7d31e9" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/firebase.js" beforeDir="false" afterPath="$PROJECT_DIR$/firebase.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/Usuario.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/model/Usuario.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/ListarPosts.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/screens/ListarPosts.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/screens/SearchUsers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/screens/SearchUsers.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/UserProfile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/screens/UserProfile.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

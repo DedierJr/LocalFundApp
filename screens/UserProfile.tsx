@@ -4,18 +4,20 @@ import { View, Text, StyleSheet, Image } from 'react-native';
 import { Usuario } from '../model/Usuario';
 import { firestore } from '../firebase';
 
-const UserProfile = ({route}: any) => {
+const UserProfile = ({ route }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
 
   useEffect(() => {
-    //console.log(route.params.userId)
-    const {userId} = route.params;
-    const getUser = async () =>{
+    const { userId } = route.params;
+    console.log('User ID:', userId); // Log para verificar o userId
+
+    const getUser = async () => {
       try {
         const userRef = firestore.collection('Usuario').doc(userId);
         const doc = await userRef.get();
 
         if (doc.exists) {
+          console.log('User data:', doc.data()); // Log para verificar os dados do usuário
           setUser(doc.data() as Usuario);
         } else {
           console.log('Usuário não encontrado');
@@ -26,7 +28,7 @@ const UserProfile = ({route}: any) => {
     };
 
     getUser();
-  }, []);
+  }, [route.params]);
 
   if (!user) {
     return <Text>Carregando...</Text>;
@@ -34,9 +36,17 @@ const UserProfile = ({route}: any) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.name}>{user.nome}</Text>
+      <Text style={styles.name}>{user.username}</Text>
       {user.fotoPerfil && <Image style={styles.photo} source={{ uri: user.fotoPerfil }} />}
       {user.bio && <Text style={styles.bio}>{user.bio}</Text>}
+      {user.friends && (
+        <View style={styles.friendsContainer}>
+          <Text style={styles.friendsTitle}>Amigos:</Text>
+          {user.friends.map((friendId, index) => (
+            <Text key={index} style={styles.friend}>{friendId}</Text>
+          ))}
+        </View>
+      )}
     </View>
   );
 };
@@ -62,6 +72,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     paddingHorizontal: 20,
+  },
+  friendsContainer: {
+    marginTop: 20,
+  },
+  friendsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  friend: {
+    fontSize: 16,
   },
 });
 

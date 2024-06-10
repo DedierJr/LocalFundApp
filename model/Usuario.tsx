@@ -1,3 +1,4 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/model/Usuario.tsx
 import bcrypt from 'bcryptjs';
 
 export class Usuario {

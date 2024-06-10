@@ -1,4 +1,3 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/ListarPosts.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { firestore } from '../firebase';
@@ -53,7 +52,12 @@ const ListarPosts: React.FC = () => {
     }, []);
 
     const navigateToUserProfile = (userId: string) => {
-        navigation.navigate('UserProfile', { userId });
+        if (userId) {
+            console.log('Navigating to user profile with ID:', userId); // Log para verificar a navegação
+            navigation.navigate('UserProfile', { userId });
+        } else {
+            console.error('User ID is undefined');
+        }
     };
 
     return (
@@ -67,7 +71,8 @@ const ListarPosts: React.FC = () => {
                         <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
                             <Text style={styles.postTitle}>{item.title}</Text>
                             <Text style={styles.postContent}>{item.content}</Text>
-                            <Text style={styles.postAuthor}>Por: {users[item.userId]?.nome}</Text>
+                            <Text style={styles.postAuthor}>Por: {users[item.userId]?.username}</Text>
+                            {console.log('Post:', item)}
                             {item.lat && item.long && (
                                 <Text style={styles.postLocation}>
                                     Localização: ({item.lat}, {item.long})
