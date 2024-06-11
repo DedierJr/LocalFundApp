@@ -1,3 +1,4 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import { Usuario } from '../model/Usuario';
@@ -7,7 +8,7 @@ import { createChat, findChatByParticipants } from '../services/chatService';
 const UserProfile = ({ route, navigation }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
   const [chatId, setChatId] = useState<string | null>(null);
-  const { userId } = route.params; // ID do usuário do perfil
+  const { userId } = route.params;
 
   useEffect(() => {
     const getUser = async () => {
@@ -37,14 +38,15 @@ const UserProfile = ({ route, navigation }: any) => {
         return;
       }
 
-      const existingChatId = await findChatByParticipants([userId, currentUserId]);
-      setChatId(existingChatId);
+      const existingChat = await findChatByParticipants([userId, currentUserId]);
+      setChatId(existingChat ? existingChat.id : null);
+      console.log('Chat ID:', chatId);
     };
 
     checkChat();
-  }, [userId]);
+  }, []);
 
-  const handleChat = async () => {
+  const handleCreateChat = async () => {
     const currentUserId = auth.currentUser?.uid;
 
     if (!currentUserId || !userId) {
@@ -52,16 +54,28 @@ const UserProfile = ({ route, navigation }: any) => {
       return;
     }
 
-    if (!chatId) {
-      try {
-        const newChatId = await createChat([userId, currentUserId]);
-        setChatId(newChatId);
-      } catch (error) {
-        console.error('Erro ao criar chat:', error);
+    try {
+      const newChatId = await createChat([userId, currentUserId]);
+      if (!newChatId) {
+        console.error('Falha ao criar um novo chat.');
+        return;
       }
+      setChatId(newChatId);
+      navigation.navigate('Chat', { chatId: newChatId, userId: currentUserId });
+    } catch (error) {
+      console.error('Erro ao criar chat:', error);
+    }
+  };
+
+  const handleEnterChat = () => {
+    const currentUserId = auth.currentUser?.uid;
+
+    if (!currentUserId || !userId || !chatId) {
+      console.error('IDs de usuário ou chat inválidos.');
+      return;
     }
 
-    navigation.navigate('Chat', { chatId: chatId || '', userId: currentUserId });
+    navigation.navigate('Chat', { chatId, userId: currentUserId });
   };
 
   if (!user) {
@@ -77,11 +91,12 @@ const UserProfile = ({ route, navigation }: any) => {
         <View style={styles.friendsContainer}>
           <Text style={styles.friendsTitle}>Amigos:</Text>
           {user.friends.map((friendId, index) => (
-            <Text key={index} style={styles.friend}>{friendId}</Text>
+            <Text key={`${friendId}-${index}`} style={styles.friend}>{friendId}</Text>
           ))}
         </View>
       )}
-      <Button title="Iniciar Chat" onPress={handleChat} />
+      <Button title="Iniciar Chat" onPress={handleCreateChat} />
+      {chatId && <Button title="Entrar em Chat Existente" onPress={handleEnterChat} style={{ backgroundColor: 'red' }} />}
     </View>
   );
 };
