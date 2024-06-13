@@ -19,7 +19,6 @@ export class Chat {
 
     toFirestore() {
         return {
-            id: this.id,
             participants: this.participants,
             createdAt: this.createdAt
         };

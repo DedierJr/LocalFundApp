@@ -1,6 +1,11 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/model/Usuario.tsx
 import bcrypt from 'bcryptjs';
 
+interface Friend {
+    friendId: string;
+    chatId: string;
+}
+
 export class Usuario {
     public id: string;
     public username: string; // Nome de usuário único
@@ -10,7 +15,7 @@ export class Usuario {
     public datanascimento: string;
     public fotoPerfil?: string; // URL da foto de perfil
     public bio?: string; // Bio do usuário
-    public friends: string[]; // Lista de IDs de amigos
+    public friends: Friend[]; // Lista de objetos Friend
 
     constructor(obj?: Partial<Usuario>) {
         if (obj) {

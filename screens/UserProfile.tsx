@@ -39,18 +39,29 @@ const UserProfile = ({ route, navigation }: any) => {
       }
 
       const existingChat = await findChatByParticipants([userId, currentUserId]);
-      setChatId(existingChat ? existingChat.id : null);
-      console.log('Chat ID:', chatId);
+      if (existingChat) {
+        setChatId(existingChat.id);
+        console.log('Chat ID encontrado:', existingChat.id);
+      } else {
+        setChatId(null);
+        console.log('Nenhum chat existente encontrado');
+      }
     };
 
     checkChat();
-  }, []);
+  }, [userId]);
 
   const handleCreateChat = async () => {
     const currentUserId = auth.currentUser?.uid;
 
     if (!currentUserId || !userId) {
       console.error('IDs de usuário inválidos.');
+      return;
+    }
+
+    if (chatId) {
+      console.log('Chat já existente:', chatId);
+      navigation.navigate('Chat', { chatId, userId: currentUserId });
       return;
     }
 
@@ -87,16 +98,7 @@ const UserProfile = ({ route, navigation }: any) => {
       <Text style={styles.name}>{user.username}</Text>
       {user.fotoPerfil && <Image style={styles.photo} source={{ uri: user.fotoPerfil }} />}
       {user.bio && <Text style={styles.bio}>{user.bio}</Text>}
-      {user.friends && (
-        <View style={styles.friendsContainer}>
-          <Text style={styles.friendsTitle}>Amigos:</Text>
-          {user.friends.map((friendId, index) => (
-            <Text key={`${friendId}-${index}`} style={styles.friend}>{friendId}</Text>
-          ))}
-        </View>
-      )}
-      <Button title="Iniciar Chat" onPress={handleCreateChat} />
-      {chatId && <Button title="Entrar em Chat Existente" onPress={handleEnterChat} style={{ backgroundColor: 'red' }} />}
+      <Button title="Chat" onPress={chatId ? handleEnterChat : handleCreateChat} />
     </View>
   );
 };
@@ -104,34 +106,23 @@ const UserProfile = ({ route, navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   name: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
   },
   photo: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    marginBottom: 10,
+    marginVertical: 20,
   },
   bio: {
     fontSize: 16,
     textAlign: 'center',
-    paddingHorizontal: 20,
-  },
-  friendsContainer: {
-    marginTop: 20,
-  },
-  friendsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  friend: {
-    fontSize: 16,
   },
 });
 
