@@ -17,7 +17,12 @@ const UserProfile = ({ route, navigation }: any) => {
         const doc = await userRef.get();
 
         if (doc.exists) {
-          setUser(doc.data() as Usuario);
+          const userData = doc.data();
+          if (userData) {
+            setUser(new Usuario(userData));
+          } else {
+            console.error('Dados do usuário estão vazios.');
+          }
         } else {
           console.log('Usuário não encontrado');
         }
@@ -39,13 +44,7 @@ const UserProfile = ({ route, navigation }: any) => {
       }
 
       const existingChat = await findChatByParticipants([userId, currentUserId]);
-      if (existingChat) {
-        setChatId(existingChat.id);
-        console.log('Chat ID encontrado:', existingChat.id);
-      } else {
-        setChatId(null);
-        console.log('Nenhum chat existente encontrado');
-      }
+      setChatId(existingChat ? existingChat.id : null);
     };
 
     checkChat();
@@ -56,12 +55,6 @@ const UserProfile = ({ route, navigation }: any) => {
 
     if (!currentUserId || !userId) {
       console.error('IDs de usuário inválidos.');
-      return;
-    }
-
-    if (chatId) {
-      console.log('Chat já existente:', chatId);
-      navigation.navigate('Chat', { chatId, userId: currentUserId });
       return;
     }
 
@@ -78,27 +71,18 @@ const UserProfile = ({ route, navigation }: any) => {
     }
   };
 
-  const handleEnterChat = () => {
-    const currentUserId = auth.currentUser?.uid;
-
-    if (!currentUserId || !userId || !chatId) {
-      console.error('IDs de usuário ou chat inválidos.');
-      return;
-    }
-
-    navigation.navigate('Chat', { chatId, userId: currentUserId });
-  };
-
   if (!user) {
     return <Text>Carregando...</Text>;
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.name}>{user.username}</Text>
-      {user.fotoPerfil && <Image style={styles.photo} source={{ uri: user.fotoPerfil }} />}
-      {user.bio && <Text style={styles.bio}>{user.bio}</Text>}
-      <Button title="Chat" onPress={chatId ? handleEnterChat : handleCreateChat} />
+      <Text>{user.username}</Text>
+      {chatId ? (
+        <Button title="Entrar no Chat" onPress={() => navigation.navigate('Chat', { chatId })} />
+      ) : (
+        <Button title="Criar Chat" onPress={handleCreateChat} />
+      )}
     </View>
   );
 };
@@ -106,23 +90,8 @@ const UserProfile = ({ route, navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    alignItems: 'center',
     justifyContent: 'center',
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  photo: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginVertical: 20,
-  },
-  bio: {
-    fontSize: 16,
-    textAlign: 'center',
+    alignItems: 'center',
   },
 });
 

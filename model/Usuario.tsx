@@ -6,16 +6,22 @@ interface Friend {
     chatId: string;
 }
 
+interface FriendRequest {
+    senderId: string;
+    status: 'pending' | 'accepted' | 'rejected';
+}
+
 export class Usuario {
     public id: string;
-    public username: string; // Nome de usuário único
-    public nickname: string; // Apelido não único
+    public username: string;
+    public nickname: string;
     public email: string;
-    public senhaHash: string; // Usaremos senhaHash em vez de senha
+    public senhaHash: string;
     public datanascimento: string;
-    public fotoPerfil?: string; // URL da foto de perfil
-    public bio?: string; // Bio do usuário
-    public friends: Friend[]; // Lista de objetos Friend
+    public fotoPerfil?: string;
+    public bio?: string;
+    public friends: Friend[];
+    public friendRequests: FriendRequest[];
 
     constructor(obj?: Partial<Usuario>) {
         if (obj) {
@@ -28,6 +34,7 @@ export class Usuario {
             this.fotoPerfil = obj.fotoPerfil || undefined;
             this.bio = obj.bio || undefined;
             this.friends = obj.friends || [];
+            this.friendRequests = obj.friendRequests || [];
         } else {
             this.id = '';
             this.username = '';
@@ -36,15 +43,16 @@ export class Usuario {
             this.senhaHash = '';
             this.datanascimento = '';
             this.friends = [];
+            this.friendRequests = [];
         }
     }
 
     async setSenha(senha: string) {
-        this.senhaHash = await bcrypt.hash(senha, 10); // Hash da senha
+        this.senhaHash = await bcrypt.hash(senha, 10);
     }
 
     async verificarSenha(senha: string) {
-        return await bcrypt.compare(senha, this.senhaHash); // Verificação da senha
+        return await bcrypt.compare(senha, this.senhaHash);
     }
 
     toFirestore() {
@@ -53,11 +61,12 @@ export class Usuario {
             username: this.username,
             nickname: this.nickname,
             email: this.email,
-            senhaHash: this.senhaHash, // Agora armazenamos o hash da senha
+            senhaHash: this.senhaHash,
             datanascimento: this.datanascimento,
             fotoPerfil: this.fotoPerfil,
             bio: this.bio,
-            friends: this.friends
+            friends: this.friends,
+            friendRequests: this.friendRequests
         };
     }
 
@@ -70,7 +79,8 @@ export class Usuario {
             datanascimento: this.datanascimento,
             fotoPerfil: this.fotoPerfil,
             bio: this.bio,
-            friends: this.friends
+            friends: this.friends,
+            friendRequests: this.friendRequests
         };
     }
 }

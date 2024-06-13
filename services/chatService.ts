@@ -6,7 +6,6 @@ import { Usuario } from '../model/Usuario';
 export const createChat = async (participants: string[]) => {
     const existingChat = await findChatByParticipants(participants);
     if (existingChat) {
-        console.log('Chat já existe:', existingChat.id);
         return existingChat.id;
     }
 
@@ -33,7 +32,6 @@ export const createChat = async (participants: string[]) => {
         }
     }));
 
-    console.log('Novo chat criado com ID:', newChatId);
     return newChatId;
 };
 
@@ -43,22 +41,18 @@ export const findChatByParticipants = async (participants: string[]): Promise<Ch
         .where('participants', 'array-contains', participants[0])
         .get();
 
-    console.log(`Verificando chats existentes com o participante ${participants[0]}`);
 
     for (const chatDoc of chatsQuery.docs) {
         const chatData = chatDoc.data();
         const chatParticipants: string[] = chatData.participants;
 
-        console.log(`Chat encontrado com participantes: ${chatParticipants.join(', ')}`);
 
         if (participants.length === chatParticipants.length &&
             participants.every(participant => chatParticipants.includes(participant))) {
-            console.log(`Chat existente encontrado com ID: ${chatDoc.id}`);
             return new Chat({ id: chatDoc.id, ...chatData });
         }
     }
 
-    console.log('Nenhum chat existente encontrado');
     return null;
 };
 
