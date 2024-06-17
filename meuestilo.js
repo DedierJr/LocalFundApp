@@ -1,6 +1,10 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/meuestilo.js
 import { StyleSheet } from 'react-native';
 
+const color = {
+    black: '#0B0500'
+}
+
 export default StyleSheet.create({
     button: {
         backgroundColor: '#0782F9',

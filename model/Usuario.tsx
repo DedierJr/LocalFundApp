@@ -1,3 +1,4 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/model/Usuario.tsx
 import bcrypt from 'bcryptjs'; // Importe a biblioteca de hash bcryptjs
 
 export class Usuario {

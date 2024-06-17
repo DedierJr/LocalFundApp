@@ -80,28 +80,35 @@ const Login = () => {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+      backgroundColor: 'white', // Optional light background color
     },
     label: {
-        fontSize: 18,
-        marginBottom: 5,
+      fontSize: 18,
+      fontWeight: 'bold', // Add emphasis to labels
+      marginBottom: 5,
+      color: '#333', // Adjust text color for better contrast
     },
     input: {
-        width: '100%',
-        height: 40,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        padding: 10,
-        marginBottom: 10,
+      width: '100%',
+      height: 40,
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: 5,
+      padding: 10,
+      marginBottom: 10,
+      backgroundColor: '#fff', // Optional white background for better input visibility
     },
     buttonContainer: {
-        width: '100%',
-        marginVertical: 2,
+      width: '100%',
+      marginVertical: 2,
+      flexDirection: 'row', // Allow for horizontal button arrangements if needed
+      justifyContent: 'center', // Center buttons horizontally within the container
     },
-});
+  });
+  
 
 export default Login;
