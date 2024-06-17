@@ -2,7 +2,6 @@
 interface Post {
   id: string;
   userId: string;
-  title: string;
   content: string;
   createdAt: Date;
   lat?: number;  // Adicionado campo opcional lat

@@ -1,58 +1,33 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/model/Usuario.tsx
-import bcrypt from 'bcryptjs';
-
-interface Friend {
-    friendId: string;
-    chatId: string;
-}
-
-interface FriendRequest {
-    senderId: string;
-    status: 'pending' | 'accepted' | 'rejected';
-}
+import bcrypt from 'bcryptjs'; // Importe a biblioteca de hash bcryptjs
 
 export class Usuario {
     public id: string;
     public username: string;
     public nickname: string;
     public email: string;
-    public senhaHash: string;
-    public datanascimento: string;
-    public fotoPerfil?: string;
-    public bio?: string;
-    public friends: Friend[];
-    public friendRequests: FriendRequest[];
+    public senhaHash: string; // Agora é o hash da senha
+    public datanascimento: Date;
+    public fotoPerfil: string;
+    public bio: string;
+    public friends: string[];
+    public friendRequests: { senderId: string, status: string }[];
 
     constructor(obj?: Partial<Usuario>) {
-        if (obj) {
-            this.id = obj.id || '';
-            this.username = obj.username || '';
-            this.nickname = obj.nickname || '';
-            this.email = obj.email || '';
-            this.senhaHash = obj.senhaHash || '';
-            this.datanascimento = obj.datanascimento || '';
-            this.fotoPerfil = obj.fotoPerfil || undefined;
-            this.bio = obj.bio || undefined;
-            this.friends = obj.friends || [];
-            this.friendRequests = obj.friendRequests || [];
-        } else {
-            this.id = '';
-            this.username = '';
-            this.nickname = '';
-            this.email = '';
-            this.senhaHash = '';
-            this.datanascimento = '';
-            this.friends = [];
-            this.friendRequests = [];
-        }
+        this.id = obj?.id || '';
+        this.username = obj?.username || '';
+        this.nickname = obj?.nickname || '';
+        this.email = obj?.email || '';
+        this.senhaHash = obj?.senhaHash ? bcrypt.hashSync(obj.senhaHash, 10) : ''; // Hash da senha
+        this.datanascimento = obj?.datanascimento || new Date();
+        this.fotoPerfil = obj?.fotoPerfil || '';
+        this.bio = obj?.bio || '';
+        this.friends = obj?.friends || [];
+        this.friendRequests = obj?.friendRequests || [];
     }
 
-    async setSenha(senha: string) {
-        this.senhaHash = await bcrypt.hash(senha, 10);
-    }
-
-    async verificarSenha(senha: string) {
-        return await bcrypt.compare(senha, this.senhaHash);
+    // Método para verificar se a senha fornecida corresponde à senha armazenada
+    verificaSenha(senha: string): boolean {
+        return bcrypt.compareSync(senha, this.senhaHash);
     }
 
     toFirestore() {
@@ -66,21 +41,7 @@ export class Usuario {
             fotoPerfil: this.fotoPerfil,
             bio: this.bio,
             friends: this.friends,
-            friendRequests: this.friendRequests
-        };
-    }
-
-    toJSON() {
-        return {
-            id: this.id,
-            username: this.username,
-            nickname: this.nickname,
-            email: this.email,
-            datanascimento: this.datanascimento,
-            fotoPerfil: this.fotoPerfil,
-            bio: this.bio,
-            friends: this.friends,
-            friendRequests: this.friendRequests
+            friendRequests: this.friendRequests,
         };
     }
 }

@@ -1,4 +1,3 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/Mapa.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
@@ -128,10 +127,10 @@ const Mapa = () => {
                             setMostrarFormulario(true);
                         }}
                     >
-                        {posts.map((post) => (
+                        {posts.map((post, index) => (
                             post.lat && post.long ? (
                                 <Marker
-                                    key={post.id}
+                                    key={`${post.id}-${index}`}
                                     coordinate={{ latitude: post.lat, longitude: post.long }}
                                     title={post.title}
                                     description={post.content}

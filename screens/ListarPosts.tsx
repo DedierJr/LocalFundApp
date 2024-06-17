@@ -67,13 +67,13 @@ const ListarPosts: React.FC = () => {
             <Text style={styles.header}>Listagem de Posts:</Text>
             <FlatList
                 data={posts}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id || Math.random().toString()}
                 renderItem={({ item }) => (
                     <View style={styles.postContainer}>
                         <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
-                            <Text style={styles.postTitle}>{item.title}</Text>
                             <Text style={styles.postContent}>{item.content}</Text>
-                            <Text style={styles.postAuthor}>Por: {users[item.userId]?.username}</Text>
+                            <Text style={styles.postAuthorNickname}>{users[item.userId]?.nickname}</Text>
+                            <Text style={styles.postAuthorUsername}>{users[item.userId]?.username}</Text>
                             {item.lat && item.long && (
                                 <Text style={styles.postLocation}>
                                     Localização: ({item.lat}, {item.long})
@@ -105,15 +105,15 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 10,
     },
-    postTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 5,
-    },
     postContent: {
+        fontSize: 16,
         marginBottom: 5,
     },
-    postAuthor: {
+    postAuthorNickname: {
+        fontWeight: 'bold',
+        color: 'black',
+    },
+    postAuthorUsername: {
         fontStyle: 'italic',
     },
     postLocation: {

@@ -1,13 +1,14 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, Button } from 'react-native';
+import { View, Text, StyleSheet, Button } from 'react-native';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
 import { createChat, findChatByParticipants } from '../services/chatService';
+import { sendFriendRequest } from '../services/notificationService';
 
 const UserProfile = ({ route, navigation }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
   const [chatId, setChatId] = useState<string | null>(null);
+  const [friendRequestSent, setFriendRequestSent] = useState<boolean>(false);
   const { userId } = route.params;
 
   useEffect(() => {
@@ -19,7 +20,8 @@ const UserProfile = ({ route, navigation }: any) => {
         if (doc.exists) {
           const userData = doc.data();
           if (userData) {
-            setUser(new Usuario(userData));
+            const usuario = new Usuario(userData);
+            setUser(usuario);
           } else {
             console.error('Dados do usuário estão vazios.');
           }
@@ -50,6 +52,31 @@ const UserProfile = ({ route, navigation }: any) => {
     checkChat();
   }, [userId]);
 
+  useEffect(() => {
+    const checkFriendRequest = async () => {
+      const currentUserId = auth.currentUser?.uid;
+
+      if (!currentUserId || !userId) {
+        console.error('IDs de usuário inválidos.');
+        return;
+      }
+
+      const userRef = firestore.collection('Usuario').doc(userId);
+      const doc = await userRef.get();
+
+      if (doc.exists) {
+        const userData = doc.data() as Usuario;
+        userData.friendRequests = userData.friendRequests || [];
+        const requestExists = userData.friendRequests.some(req => req.senderId === currentUserId && req.status === 'pending');
+        setFriendRequestSent(requestExists);
+      } else {
+        console.log('Usuário não encontrado');
+      }
+    };
+
+    checkFriendRequest();
+  }, [userId]);
+
   const handleCreateChat = async () => {
     const currentUserId = auth.currentUser?.uid;
 
@@ -71,6 +98,23 @@ const UserProfile = ({ route, navigation }: any) => {
     }
   };
 
+  const handleFriendRequest = async () => {
+    const currentUserId = auth.currentUser?.uid;
+
+    if (!currentUserId || !userId) {
+      console.error('IDs de usuário inválidos.');
+      return;
+    }
+
+    try {
+      await sendFriendRequest(currentUserId, userId);
+      setFriendRequestSent(true);
+      console.log('Solicitação de amizade enviada');
+    } catch (error) {
+      console.error('Erro ao enviar solicitação de amizade:', error);
+    }
+  };
+
   if (!user) {
     return <Text>Carregando...</Text>;
   }
@@ -83,6 +127,11 @@ const UserProfile = ({ route, navigation }: any) => {
       ) : (
         <Button title="Criar Chat" onPress={handleCreateChat} />
       )}
+      <Button
+        title={friendRequestSent ? "Solicitação enviada" : "Enviar solicitação de amizade"}
+        disabled={friendRequestSent}
+        onPress={handleFriendRequest}
+      />
     </View>
   );
 };
