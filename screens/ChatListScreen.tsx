@@ -7,6 +7,7 @@ import { Notification } from '../model/Notification';
 const ChatListScreen = ({ navigation, route }: any) => {
     const [chats, setChats] = useState([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [friendRequests, setFriendRequests] = useState([]);
     const { userId } = route.params;
 
     useEffect(() => {
@@ -38,6 +39,21 @@ const ChatListScreen = ({ navigation, route }: any) => {
         return () => unsubscribeNotifications();
     }, [userId]);
 
+    useEffect(() => {
+        const unsubscribeFriendRequests = firestore.collection('users')
+            .doc(userId)
+            .collection('friendRequests')
+            .onSnapshot(snapshot => {
+                const friendRequestList = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                setFriendRequests(friendRequestList);
+            });
+
+        return () => unsubscribeFriendRequests();
+    }, [userId]);
+
     const handleNotificationPress = async (notification: Notification) => {
         if (notification.type === 'friend_request') {
             navigation.navigate('FriendRequests', { userId });
@@ -50,6 +66,10 @@ const ChatListScreen = ({ navigation, route }: any) => {
         await notificationRef.update({ read: true });
     };
 
+    const handleFriendRequestPress = (friendRequest: any) => {
+        navigation.navigate('FriendRequests', { userId });
+    };
+
     return (
         <View>
             <Text>Notificações:</Text>
@@ -59,6 +79,17 @@ const ChatListScreen = ({ navigation, route }: any) => {
                 renderItem={({ item }) => (
                     <TouchableOpacity onPress={() => handleNotificationPress(item)}>
                         <Text>{item.message}</Text>
+                    </TouchableOpacity>
+                )}
+            />
+
+            <Text>Solicitações de Amizade:</Text>
+            <FlatList
+                data={friendRequests}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                    <TouchableOpacity onPress={() => handleFriendRequestPress(item)}>
+                        <Text>{`Solicitação de amizade de: ${item.senderId}`}</Text>
                     </TouchableOpacity>
                 )}
             />
