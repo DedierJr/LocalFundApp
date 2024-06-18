@@ -1,16 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity } from 'react-native';
 import { auth, firestore } from '../firebase'; // Import firebase config
+import { Usuario } from '../model/Usuario'; // Import your Usuario class
 
 const ChatListScreen = ({ navigation }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [friendRequests, setFriendRequests] = useState([]);
+  const [currentUser, setCurrentUser] = useState<Usuario | null>(null);
+  const [friendRequests, setFriendRequests] = useState<{ senderId: string, status: string }[]>([]);
 
   useEffect(() => {
     // Get the currently logged-in user
     const unsubscribe = auth.onAuthStateChanged(user => {
       if (user) {
-        setCurrentUser(user);
+        // Fetch the user data from Firestore
+        firestore.collection('users').doc(user.uid).get().then(doc => {
+          if (doc.exists) {
+            const userData = doc.data();
+            setCurrentUser(new Usuario(userData));
+          } else {
+            console.error("No such user document!");
+          }
+        });
       } else {
         // Handle case where user is not logged in (e.g., navigate to login)
       }
@@ -22,93 +31,62 @@ const ChatListScreen = ({ navigation }) => {
   useEffect(() => {
     if (currentUser) {
       // Fetch friend requests for the current user from Firestore
-      const unsubscribe = firestore.collection('users')
-        .doc(currentUser.uid)
-        .collection('friendRequests')
-        .onSnapshot(snapshot => {
-          const requests = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data() 
-          }));
-          setFriendRequests(requests);
-        });
-
-      return () => unsubscribe();
+      setFriendRequests(currentUser.friendRequests); 
     }
   }, [currentUser]);
 
-  const handleAcceptRequest = async (requestId) => {
+  const handleAcceptRequest = async (senderId: string) => {
     try {
       // Update the friend request status in Firestore
-      await firestore.collection('users')
-        .doc(currentUser.uid)
-        .collection('friendRequests')
-        .doc(requestId)
-        .update({ status: 'accepted' });
+      await firestore.collection('users').doc(currentUser!.id).update({
+        friendRequests: currentUser!.friendRequests.map(request => {
+          if (request.senderId === senderId) {
+            return { ...request, status: 'accepted' };
+          }
+          return request;
+        })
+      });
 
       // Also add the sender to the user's friends list (optional)
-      await firestore.collection('users')
-        .doc(currentUser.uid)
-        .collection('friends')
-        .doc(friendRequests.find(r => r.id === requestId).senderId)
-        .set({
-          // Any additional data you want to store about the friend
-        });
+      await firestore.collection('users').doc(currentUser!.id).update({
+        friends: [...currentUser!.friends, senderId]
+      });
 
-      // Update the user's friends list (optional)
-      // ...
-
-      // Refresh friend requests
-      setFriendRequests(friendRequests.filter(r => r.id !== requestId));
+      // Update the local state
+      setFriendRequests(currentUser!.friendRequests.filter(request => request.senderId !== senderId));
+      setCurrentUser(new Usuario({ ...currentUser, friendRequests: currentUser!.friendRequests.filter(request => request.senderId !== senderId), friends: [...currentUser!.friends, senderId] }));
     } catch (error) {
       console.error('Error accepting request:', error);
     }
   };
 
-  const handleRejectRequest = async (requestId) => {
+  const handleRejectRequest = async (senderId: string) => {
     try {
-      // Delete the friend request from Firestore
-      await firestore.collection('users')
-        .doc(currentUser.uid)
-        .collection('friendRequests')
-        .doc(requestId)
-        .delete();
-      // Refresh friend requests
-      setFriendRequests(friendRequests.filter(r => r.id !== requestId));
+      // Update the friend request status in Firestore
+      await firestore.collection('users').doc(currentUser!.id).update({
+        friendRequests: currentUser!.friendRequests.filter(request => request.senderId !== senderId)
+      });
+
+      // Update the local state
+      setFriendRequests(currentUser!.friendRequests.filter(request => request.senderId !== senderId));
+      setCurrentUser(new Usuario({ ...currentUser, friendRequests: currentUser!.friendRequests.filter(request => request.senderId !== senderId) }));
     } catch (error) {
       console.error('Error rejecting request:', error);
     }
   };
 
   const renderFriendRequestItem = ({ item }) => {
-    const senderRef = firestore.collection('users').doc(item.senderId);
-    const [senderData, setSenderData] = useState(null);
-
-    useEffect(() => {
-      const unsubscribe = senderRef.onSnapshot(snapshot => {
-        setSenderData(snapshot.data());
-      });
-
-      return () => unsubscribe();
-    }, []);
-
-    if (!senderData) {
-      return <View style={styles.requestItem}>
-        <Text>Loading sender data...</Text>
-      </View>;
-    }
-
     return (
       <View style={styles.requestItem}>
-        <Image source={{ uri: senderData.fotoPerfil }} style={styles.profileImage} />
+        <Image source={{ uri: item.fotoPerfil }} style={styles.profileImage} />
         <View style={styles.requestInfo}>
-          <Text style={styles.requestUsername}>{senderData.username}</Text>
-          <Text style={styles.requestNickname}>{senderData.nickname}</Text>
+          <Text style={styles.requestUsername}>{item.username}</Text>
+          <Text style={styles.requestNickname}>{item.nickname}</Text>
           <View style={styles.requestButtons}>
-            <TouchableOpacity onPress={() => handleAcceptRequest(item.id)} style={styles.acceptButton}>
+            <TouchableOpacity onPress={() => handleAcceptRequest(item.senderId)} style={styles.acceptButton}>
               <Text style={styles.buttonText}>Accept</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleRejectRequest(item.id)} style={styles.rejectButton}>
+            <TouchableOpacity onPress={() => handleRejectRequest(item.senderId)} style={styles.rejectButton}>
               <Text style={styles.buttonText}>Reject</Text>
             </TouchableOpacity>
           </View>
@@ -126,7 +104,7 @@ const ChatListScreen = ({ navigation }) => {
         <FlatList
           data={friendRequests}
           renderItem={renderFriendRequestItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.senderId}
           showsVerticalScrollIndicator={false}
         />
       ) : (
