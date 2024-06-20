@@ -30,7 +30,6 @@ export const sendFriendRequest = async (senderId: string, receiverId: string) =>
     console.log('Solicitação de amizade enviada');
 };
 
-// Atualizar o serviço de chat
 export const sendMessage = async (chatId: string, senderId: string, content: string) => {
     const message = new Message({ chatId, senderId, content });
     await firestore.collection('chats').doc(chatId).collection('messages').add(message.toFirestore());
@@ -46,4 +45,9 @@ export const sendMessage = async (chatId: string, senderId: string, content: str
             await sendNotification(receiverId, 'Você recebeu uma nova mensagem', 'chat_message');
         }
     }
+};
+
+export const fetchNotifications = async (userId: string) => {
+    const notificationsSnapshot = await firestore.collection('notifications').where('userId', '==', userId).get();
+    return notificationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };

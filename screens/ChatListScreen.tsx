@@ -1,60 +1,68 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/ChatListScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity } from 'react-native';
-import { auth, firestore } from '../firebase'; // Import firebase config
-import { Usuario } from '../model/Usuario'; // Import your Usuario class
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { auth, firestore } from '../firebase';
+import { Usuario } from '../model/Usuario';
 
 const ChatListScreen = ({ navigation }) => {
   const [currentUser, setCurrentUser] = useState<Usuario | null>(null);
-  const [friendRequests, setFriendRequests] = useState<{ senderId: string, status: string }[]>([]);
+  const [friendRequests, setFriendRequests] = useState<{ senderId: string, status: string, username: string, nickname: string, fotoPerfil: string }[]>([]);
 
   useEffect(() => {
-    // Get the currently logged-in user
     const unsubscribe = auth.onAuthStateChanged(user => {
       if (user) {
-        // Fetch the user data from Firestore
-        firestore.collection('users').doc(user.uid).get().then(doc => {
+        firestore.collection('Usuario').doc(user.uid).get().then(doc => {
           if (doc.exists) {
             const userData = doc.data();
-            setCurrentUser(new Usuario(userData));
+            const usuario = new Usuario(userData);
+            setCurrentUser(usuario);
+
+            const requestsWithDetails = usuario.friendRequests.map(async request => {
+              const senderDoc = await firestore.collection('Usuario').doc(request.senderId).get();
+              if (senderDoc.exists) {
+                const senderData = senderDoc.data() as Usuario;
+                return {
+                  senderId: request.senderId,
+                  status: request.status,
+                  username: senderData.username,
+                  nickname: senderData.nickname,
+                  fotoPerfil: senderData.fotoPerfil
+                };
+              } else {
+                console.error(`No such user document for senderId: ${request.senderId}`);
+                return { senderId: request.senderId, status: request.status, username: 'Unknown', nickname: 'Unknown', fotoPerfil: '' };
+              }
+            });
+
+            Promise.all(requestsWithDetails).then(setFriendRequests);
           } else {
             console.error("No such user document!");
           }
-        });
+        }).catch(error => console.error("Error getting user document:", error));
       } else {
-        // Handle case where user is not logged in (e.g., navigate to login)
+        console.error("User not logged in");
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (currentUser) {
-      // Fetch friend requests for the current user from Firestore
-      setFriendRequests(currentUser.friendRequests); 
-    }
-  }, [currentUser]);
-
   const handleAcceptRequest = async (senderId: string) => {
     try {
-      // Update the friend request status in Firestore
-      await firestore.collection('users').doc(currentUser!.id).update({
-        friendRequests: currentUser!.friendRequests.map(request => {
-          if (request.senderId === senderId) {
-            return { ...request, status: 'accepted' };
-          }
-          return request;
-        })
+      const updatedRequests = currentUser!.friendRequests.map(request => {
+        if (request.senderId === senderId) {
+          return { ...request, status: 'accepted' };
+        }
+        return request;
       });
 
-      // Also add the sender to the user's friends list (optional)
-      await firestore.collection('users').doc(currentUser!.id).update({
+      await firestore.collection('Usuario').doc(currentUser!.id).update({
+        friendRequests: updatedRequests,
         friends: [...currentUser!.friends, senderId]
       });
 
-      // Update the local state
-      setFriendRequests(currentUser!.friendRequests.filter(request => request.senderId !== senderId));
-      setCurrentUser(new Usuario({ ...currentUser, friendRequests: currentUser!.friendRequests.filter(request => request.senderId !== senderId), friends: [...currentUser!.friends, senderId] }));
+      setFriendRequests(friendRequests.filter(request => request.senderId !== senderId));
+      setCurrentUser(new Usuario({ ...currentUser, friendRequests: updatedRequests, friends: [...currentUser!.friends, senderId] }));
     } catch (error) {
       console.error('Error accepting request:', error);
     }
@@ -62,14 +70,14 @@ const ChatListScreen = ({ navigation }) => {
 
   const handleRejectRequest = async (senderId: string) => {
     try {
-      // Update the friend request status in Firestore
-      await firestore.collection('users').doc(currentUser!.id).update({
-        friendRequests: currentUser!.friendRequests.filter(request => request.senderId !== senderId)
+      const updatedRequests = currentUser!.friendRequests.filter(request => request.senderId !== senderId);
+
+      await firestore.collection('Usuario').doc(currentUser!.id).update({
+        friendRequests: updatedRequests
       });
 
-      // Update the local state
-      setFriendRequests(currentUser!.friendRequests.filter(request => request.senderId !== senderId));
-      setCurrentUser(new Usuario({ ...currentUser, friendRequests: currentUser!.friendRequests.filter(request => request.senderId !== senderId) }));
+      setFriendRequests(friendRequests.filter(request => request.senderId !== senderId));
+      setCurrentUser(new Usuario({ ...currentUser, friendRequests: updatedRequests }));
     } catch (error) {
       console.error('Error rejecting request:', error);
     }
