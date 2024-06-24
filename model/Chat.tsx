@@ -2,17 +2,17 @@
 export class Chat {
     public id: string;
     public participants: string[]; // Lista de IDs dos participantes
-    public createdAt: string; // Data de criação do chat
+    public createdAt: Date; // Data de criação do chat
 
     constructor(obj?: Partial<Chat>) {
         if (obj) {
             this.id = obj.id || '';
             this.participants = obj.participants || [];
-            this.createdAt = obj.createdAt || new Date().toISOString();
+            this.createdAt = obj.createdAt || new Date();
         } else {
             this.id = '';
             this.participants = [];
-            this.createdAt = new Date().toISOString();
+            this.createdAt = new Date();
         }
     }
 
