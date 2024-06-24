@@ -1,9 +1,9 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, Button, Image, Alert, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
-import { createChat, findChatByParticipants } from '../services/chatService';
+import { createChat } from '../services/chatService';
 import { sendNotification } from '../services/notificationService';
 
 const UserProfile = ({ route, navigation }: any) => {
@@ -137,9 +137,13 @@ const UserProfile = ({ route, navigation }: any) => {
       )}
 
       {chatId ? (
-        <Button title="Entrar no Chat" onPress={() => navigation.navigate('Chat', { chatId })} />
+        <TouchableOpacity onPress={() => navigation.navigate('Chat', { chatId })}>
+          <Icon name="chat" size={30} color="#000" />
+        </TouchableOpacity>
       ) : (
-        <Button title="Criar Chat" onPress={handleCreateChat} />
+        <TouchableOpacity onPress={handleCreateChat}>
+          <Icon name="chat" size={30} color="#000" />
+        </TouchableOpacity>
       )}
     </View>
   );
