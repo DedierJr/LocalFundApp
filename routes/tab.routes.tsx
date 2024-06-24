@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Mapa from "../screens/Mapa";
 import ListarPosts from "../screens/ListarPosts";
 import SearchUsers from "../screens/SearchUsers";
-import ChatListScreen from '../screens/ChatListScreen'; // Adicionar importação da tela de chats
+import NotificationList from '../screens/NotificationList'; // Adicionar importação da tela de chats
 
 const Tab = createBottomTabNavigator();
 
@@ -42,8 +42,8 @@ export default function Tabroutes() {
                 component={SearchUsers}
             />
             <Tab.Screen
-                name="Mensagens"
-                component={ChatListScreen}
+                name="Notificações"
+                component={NotificationList}
                 initialParams={{ userId: 'user_id_placeholder' }} // Adicionar userId como parâmetro
             />
         </Tab.Navigator>

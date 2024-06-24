@@ -82,8 +82,8 @@ const UserProfile = ({ route, navigation }: any) => {
       await firestore.collection('Usuario').doc(currentUserId).update({
         following: [...user.following, userId]
       });
-
-      sendNotification(userId, `${auth.currentUser?.displayName} começou a te seguir!`, 'followed');
+      
+      sendNotification(userId, `começou a te seguir!`, 'followed');
       setIsFollowing(true);
       Alert.alert('Successo', 'Você agora está seguindo este usuário.');
     } catch (error) {

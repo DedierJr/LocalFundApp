@@ -3,18 +3,18 @@ export class Notification {
     public id?: string;
     public userId: string;
     public message: string;
-    public type: 'followed' | 'chat_message'; // Update type
+    public type: 'followed' | 'chat_message';
     public read: boolean;
     public timestamp: Date;
-    public chatId?: string; 
+    public chatId?: string;
 
     constructor(obj?: Partial<Notification>) {
         this.userId = obj?.userId || '';
         this.message = obj?.message || '';
-        this.type = obj?.type || 'friend_request';
+        this.type = obj?.type || 'followed';
         this.read = obj?.read || false;
         this.timestamp = obj?.timestamp || new Date();
-        this.chatId = obj?.type === 'chat_message' ? obj?.chatId || '' : undefined; // Inicializar chatId apenas para chat_message
+        this.chatId = obj?.type === 'chat_message' ? obj?.chatId || '' : undefined;
     }
 
     toFirestore() {

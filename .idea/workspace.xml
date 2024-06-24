@@ -6,17 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="7a71101d-aa9c-48e5-aa17-c44c9a7d31e9" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/Chat.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/model/Chat.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model/Notification.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/model/Notification.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model/Usuario.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/model/Usuario.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/routes/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screens/ChatListScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/screens/ChatListScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screens/CurrentUser.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/screens/CurrentUser.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screens/FriendsListScreen.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/screens/Mapa.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/screens/Mapa.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screens/Registro.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/screens/Registro.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/stack.routes.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/routes/stack.routes.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/tab.routes.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/routes/tab.routes.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/ChatListScreen.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/screens/UserProfile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/screens/UserProfile.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/chatService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/services/chatService.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/services/notificationService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/services/notificationService.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

@@ -43,8 +43,9 @@ export class Usuario {
             datanascimento: this.datanascimento,
             fotoPerfil: this.fotoPerfil,
             bio: this.bio,
-            friends: this.friends,
-            friendRequests: this.friendRequests,
+            followers: this.followers,
+            following: this.following,
+            chats: this.chats
         };
     }
 }

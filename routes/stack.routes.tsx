@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../screens/Login'; // Importe a tela de login
 import RegistroScreen from '../screens/Registro'; // Importe a tela de registro
 import UserProfile from '../screens/UserProfile'; // Importe a tela de registro
-import ChatList from '../screens/ChatListScreen';
+import ChatList from '../screens/NotificationList';
 
 const Stack = createStackNavigator();
 

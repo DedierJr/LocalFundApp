@@ -1,11 +1,11 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/ChatListScreen.tsx
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/NotificationList.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { auth, firestore } from '../firebase';
 import { Usuario } from '../model/Usuario';
 import { fetchNotifications } from '../services/notificationService';
 
-const ChatListScreen = ({ navigation }) => {
+const NotificationList = ({ navigation }) => {
   const [currentUser, setCurrentUser] = useState<Usuario | null>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
 
@@ -54,9 +54,19 @@ const ChatListScreen = ({ navigation }) => {
     }
   };
 
+  const handleNotificationPress = async (notification: any) => {
+    if (notification.type === 'followed') {
+      // Get the ID of the user who followed
+      const { userId } = notification
+
+      // Navigate to the user profile screen
+      navigation.navigate('UserProfile', { userId }); 
+    }
+  };
+
   const renderNotificationItem = ({ item }) => {
     return (
-      <TouchableOpacity onPress={() => handleMarkAsRead(item.id)} style={styles.notificationItem}>
+      <TouchableOpacity onPress={() => handleNotificationPress(item)} style={styles.notificationItem}>
         <View style={styles.notificationContent}>
           <Text style={styles.notificationMessage}>{item.message}</Text>
         </View>
@@ -97,7 +107,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10
   },
-  requestItem: {
+  notificationItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
@@ -106,42 +116,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 2
   },
-  profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 15
-  },
-  requestInfo: {
+  notificationContent: {
     flex: 1
   },
-  requestUsername: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5
-  },
-  requestNickname: {
-    fontSize: 14,
-    marginBottom: 10
-  },
-  requestButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end'
-  },
-  acceptButton: {
-    backgroundColor: 'green',
-    padding: 10,
-    borderRadius: 5,
-    marginRight: 10
-  },
-  rejectButton: {
-    backgroundColor: 'red',
-    padding: 10,
-    borderRadius: 5
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold'
+  notificationMessage: {
+    fontSize: 16
   },
   message: {
     fontSize: 16,
@@ -150,4 +129,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default ChatListScreen;
+export default NotificationList;
