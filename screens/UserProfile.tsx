@@ -1,14 +1,15 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet, Button, Image, Alert } from 'react-native';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
 import { createChat, findChatByParticipants } from '../services/chatService';
-import { sendFriendRequest } from '../services/notificationService';
+import { sendNotification } from '../services/notificationService';
 
 const UserProfile = ({ route, navigation }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
   const [chatId, setChatId] = useState<string | null>(null);
-  const [friendRequestSent, setFriendRequestSent] = useState<boolean>(false);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const { userId } = route.params;
 
   useEffect(() => {
@@ -22,6 +23,7 @@ const UserProfile = ({ route, navigation }: any) => {
           if (userData) {
             const usuario = new Usuario(userData);
             setUser(usuario);
+            checkFollowingStatus(usuario);
           } else {
             console.error('Dados do usuário estão vazios.');
           }
@@ -34,47 +36,6 @@ const UserProfile = ({ route, navigation }: any) => {
     };
 
     getUser();
-  }, [userId]);
-
-  useEffect(() => {
-    const checkChat = async () => {
-      const currentUserId = auth.currentUser?.uid;
-
-      if (!currentUserId || !userId) {
-        console.error('IDs de usuário inválidos.');
-        return;
-      }
-
-      const existingChat = await findChatByParticipants([userId, currentUserId]);
-      setChatId(existingChat ? existingChat.id : null);
-    };
-
-    checkChat();
-  }, [userId]);
-
-  useEffect(() => {
-    const checkFriendRequest = async () => {
-      const currentUserId = auth.currentUser?.uid;
-
-      if (!currentUserId || !userId) {
-        console.error('IDs de usuário inválidos.');
-        return;
-      }
-
-      const userRef = firestore.collection('Usuario').doc(userId);
-      const doc = await userRef.get();
-
-      if (doc.exists) {
-        const userData = doc.data() as Usuario;
-        userData.friendRequests = userData.friendRequests || [];
-        const requestExists = userData.friendRequests.some(req => req.senderId === currentUserId && req.status === 'pending');
-        setFriendRequestSent(requestExists);
-      } else {
-        console.log('Usuário não encontrado');
-      }
-    };
-
-    checkFriendRequest();
   }, [userId]);
 
   const handleCreateChat = async () => {
@@ -98,20 +59,57 @@ const UserProfile = ({ route, navigation }: any) => {
     }
   };
 
-  const handleFriendRequest = async () => {
+  const checkFollowingStatus = async (usuario: Usuario) => {
+    const currentUserId = auth.currentUser?.uid;
+    if (!currentUserId) {
+      return;
+    }
+    setIsFollowing(usuario.followers.includes(currentUserId));
+  };
+
+  const handleFollow = async () => {
     const currentUserId = auth.currentUser?.uid;
 
-    if (!currentUserId || !userId) {
+    if (!currentUserId || !userId || !user) {
       console.error('IDs de usuário inválidos.');
       return;
     }
 
     try {
-      await sendFriendRequest(currentUserId, userId);
-      setFriendRequestSent(true);
-      console.log('Solicitação de amizade enviada');
+      await firestore.collection('Usuario').doc(userId).update({
+        followers: [...user.followers, currentUserId]
+      });
+      await firestore.collection('Usuario').doc(currentUserId).update({
+        following: [...user.following, userId]
+      });
+
+      sendNotification(userId, `${auth.currentUser?.displayName} começou a te seguir!`, 'followed');
+      setIsFollowing(true);
+      Alert.alert('Successo', 'Você agora está seguindo este usuário.');
     } catch (error) {
-      console.error('Erro ao enviar solicitação de amizade:', error);
+      console.error('Erro ao seguir usuário:', error);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    const currentUserId = auth.currentUser?.uid;
+
+    if (!currentUserId || !userId || !user) {
+      console.error('IDs de usuário inválidos.');
+      return;
+    }
+
+    try {
+      await firestore.collection('Usuario').doc(userId).update({
+        followers: user.followers.filter(followerId => followerId !== currentUserId)
+      });
+      await firestore.collection('Usuario').doc(currentUserId).update({
+        following: user.following.filter(followingId => followingId !== userId)
+      });
+      setIsFollowing(false);
+      Alert.alert('Successo', 'Você deixou de seguir este usuário.');
+    } catch (error) {
+      console.error('Erro ao deixar de seguir usuário:', error);
     }
   };
 
@@ -121,17 +119,28 @@ const UserProfile = ({ route, navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <Text>{user.username}</Text>
+      <View style={styles.profile}>
+        <Image
+          source={{ uri: user.fotoPerfil }}
+          style={styles.profileImage}
+          resizeMode="cover"
+        />
+        <Text style={styles.username}>{user.username}</Text>
+        <Text style={styles.nickname}>{user.nickname}</Text>
+        <Text style={styles.bio}>{user.bio}</Text>
+      </View>
+
+      {isFollowing ? (
+        <Button title="Unfollow" onPress={handleUnfollow} />
+      ) : (
+        <Button title="Follow" onPress={handleFollow} />
+      )}
+
       {chatId ? (
         <Button title="Entrar no Chat" onPress={() => navigation.navigate('Chat', { chatId })} />
       ) : (
         <Button title="Criar Chat" onPress={handleCreateChat} />
       )}
-      <Button
-        title={friendRequestSent ? "Solicitação enviada" : "Enviar solicitação de amizade"}
-        disabled={friendRequestSent}
-        onPress={handleFriendRequest}
-      />
     </View>
   );
 };
@@ -141,6 +150,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  profile: {
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  username: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  nickname: {
+    fontSize: 16,
+    color: 'grey',
+  },
+  bio: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginHorizontal: 20,
   },
 });
 

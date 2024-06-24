@@ -3,10 +3,10 @@ export class Notification {
     public id?: string;
     public userId: string;
     public message: string;
-    public type: 'friend_request' | 'chat_message';
+    public type: 'followed' | 'chat_message'; // Update type
     public read: boolean;
     public timestamp: Date;
-    public chatId?: string; // Adicionar a propriedade chatId opcionalmente
+    public chatId?: string; 
 
     constructor(obj?: Partial<Notification>) {
         this.userId = obj?.userId || '';

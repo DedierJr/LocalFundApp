@@ -1,5 +1,4 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/model/Chat.tsx
-
 export class Chat {
     public id: string;
     public participants: string[]; // Lista de IDs dos participantes

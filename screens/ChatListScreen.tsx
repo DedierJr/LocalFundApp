@@ -3,10 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 import { auth, firestore } from '../firebase';
 import { Usuario } from '../model/Usuario';
+import { fetchNotifications } from '../services/notificationService';
 
 const ChatListScreen = ({ navigation }) => {
   const [currentUser, setCurrentUser] = useState<Usuario | null>(null);
-  const [friendRequests, setFriendRequests] = useState<{ senderId: string, status: string, username: string, nickname: string, fotoPerfil: string }[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
@@ -16,25 +17,6 @@ const ChatListScreen = ({ navigation }) => {
             const userData = doc.data();
             const usuario = new Usuario(userData);
             setCurrentUser(usuario);
-
-            const requestsWithDetails = usuario.friendRequests.map(async request => {
-              const senderDoc = await firestore.collection('Usuario').doc(request.senderId).get();
-              if (senderDoc.exists) {
-                const senderData = senderDoc.data() as Usuario;
-                return {
-                  senderId: request.senderId,
-                  status: request.status,
-                  username: senderData.username,
-                  nickname: senderData.nickname,
-                  fotoPerfil: senderData.fotoPerfil
-                };
-              } else {
-                console.error(`No such user document for senderId: ${request.senderId}`);
-                return { senderId: request.senderId, status: request.status, username: 'Unknown', nickname: 'Unknown', fotoPerfil: '' };
-              }
-            });
-
-            Promise.all(requestsWithDetails).then(setFriendRequests);
           } else {
             console.error("No such user document!");
           }
@@ -47,76 +29,55 @@ const ChatListScreen = ({ navigation }) => {
     return () => unsubscribe();
   }, []);
 
-  const handleAcceptRequest = async (senderId: string) => {
+  useEffect(() => {
+    const fetchUserNotifications = async () => {
+      if (currentUser) {
+        const fetchedNotifications = await fetchNotifications(currentUser.id);
+        setNotifications(fetchedNotifications);
+      }
+    };
+
+    fetchUserNotifications();
+  }, [currentUser]);
+
+  const handleMarkAsRead = async (notificationId: string) => {
     try {
-      const updatedRequests = currentUser!.friendRequests.map(request => {
-        if (request.senderId === senderId) {
-          return { ...request, status: 'accepted' };
+      await firestore.collection('notifications').doc(notificationId).update({ read: true });
+      setNotifications(notifications.map(notification => {
+        if (notification.id === notificationId) {
+          return { ...notification, read: true };
         }
-        return request;
-      });
-
-      await firestore.collection('Usuario').doc(currentUser!.id).update({
-        friendRequests: updatedRequests,
-        friends: [...currentUser!.friends, senderId]
-      });
-
-      setFriendRequests(friendRequests.filter(request => request.senderId !== senderId));
-      setCurrentUser(new Usuario({ ...currentUser, friendRequests: updatedRequests, friends: [...currentUser!.friends, senderId] }));
+        return notification;
+      }));
     } catch (error) {
-      console.error('Error accepting request:', error);
+      console.error('Error marking notification as read:', error);
     }
   };
 
-  const handleRejectRequest = async (senderId: string) => {
-    try {
-      const updatedRequests = currentUser!.friendRequests.filter(request => request.senderId !== senderId);
-
-      await firestore.collection('Usuario').doc(currentUser!.id).update({
-        friendRequests: updatedRequests
-      });
-
-      setFriendRequests(friendRequests.filter(request => request.senderId !== senderId));
-      setCurrentUser(new Usuario({ ...currentUser, friendRequests: updatedRequests }));
-    } catch (error) {
-      console.error('Error rejecting request:', error);
-    }
-  };
-
-  const renderFriendRequestItem = ({ item }) => {
+  const renderNotificationItem = ({ item }) => {
     return (
-      <View style={styles.requestItem}>
-        <Image source={{ uri: item.fotoPerfil }} style={styles.profileImage} />
-        <View style={styles.requestInfo}>
-          <Text style={styles.requestUsername}>{item.username}</Text>
-          <Text style={styles.requestNickname}>{item.nickname}</Text>
-          <View style={styles.requestButtons}>
-            <TouchableOpacity onPress={() => handleAcceptRequest(item.senderId)} style={styles.acceptButton}>
-              <Text style={styles.buttonText}>Accept</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleRejectRequest(item.senderId)} style={styles.rejectButton}>
-              <Text style={styles.buttonText}>Reject</Text>
-            </TouchableOpacity>
-          </View>
+      <TouchableOpacity onPress={() => handleMarkAsRead(item.id)} style={styles.notificationItem}>
+        <View style={styles.notificationContent}>
+          <Text style={styles.notificationMessage}>{item.message}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Friend Requests</Text>
+        <Text style={styles.title}>Notifications</Text>
       </View>
       {currentUser ? (
         <FlatList
-          data={friendRequests}
-          renderItem={renderFriendRequestItem}
-          keyExtractor={(item) => item.senderId}
+          data={notifications}
+          renderItem={renderNotificationItem}
+          keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
         />
       ) : (
-        <Text style={styles.message}>Please login to see your friend requests.</Text>
+        <Text style={styles.message}>Please login to see your notifications.</Text>
       )}
     </View>
   );

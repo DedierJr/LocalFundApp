@@ -1,71 +1,59 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/services/chatService.ts
 import { firestore } from '../firebase';
 import { Chat } from '../model/Chat';
-import { Usuario } from '../model/Usuario';
 
 export const createChat = async (participants: string[]) => {
-    const existingChat = await findChatByParticipants(participants);
-    if (existingChat) {
-        return existingChat.id;
-    }
+  const existingChat = await findChatByParticipants(participants);
+  if (existingChat) {
+    return existingChat.id;
+  }
 
-    const chat = new Chat({ participants });
-    const chatRef = await firestore.collection('chats').add(chat.toFirestore());
-    const newChatId = chatRef.id;
+  const chat = new Chat({ participants });
+  const chatRef = await firestore.collection('chats').add(chat.toFirestore());
+  const newChatId = chatRef.id;
 
-    // Atualizar cada usuário com o ID do chat
-    await Promise.all(participants.map(async (userId) => {
-        const userRef = firestore.collection('Usuario').doc(userId);
-        const userDoc = await userRef.get();
-        if (userDoc.exists) {
-            const user = userDoc.data() as Usuario;
-            const friendId = participants.find(participant => participant !== userId);
-            if (friendId) {
-                const friendIndex = user.friends.findIndex(friend => friend.friendId === friendId);
-                if (friendIndex >= 0) {
-                    user.friends[friendIndex].chatId = newChatId;
-                } else {
-                    user.friends.push({ friendId, chatId: newChatId });
-                }
-                await userRef.set(user.toFirestore());
-            }
-        }
-    }));
+  // Update each participant's "chats" array
+  await Promise.all(participants.map(async (userId) => {
+    const userRef = firestore.collection('Usuario').doc(userId);
+    await userRef.update({
+      chats: firestore.FieldValue.arrayUnion(newChatId) // Added 'chats' field
+    });
+  }));
 
-    return newChatId;
+  return newChatId;
 };
 
 export const findChatByParticipants = async (participants: string[]): Promise<Chat | null> => {
-    const chatsCollection = firestore.collection('chats');
-    const chatsQuery = await chatsCollection
-        .where('participants', 'array-contains', participants[0])
-        .get();
+  const chatsCollection = firestore.collection('chats');
+  const chatsQuery = await chatsCollection
+    .where('participants', 'array-contains-any', participants)
+    .get();
 
+  const matchingChats = chatsQuery.docs.map(doc => new Chat({ id: doc.id, ...doc.data() }));
 
-    for (const chatDoc of chatsQuery.docs) {
-        const chatData = chatDoc.data();
-        const chatParticipants: string[] = chatData.participants;
+  // Filtra os chats que contêm todos os participantes
+  const exactMatchChats = matchingChats.filter(chat =>
+    participants.every(participant => chat.participants.includes(participant)) &&
+    chat.participants.length === participants.length
+  );
 
-
-        if (participants.length === chatParticipants.length &&
-            participants.every(participant => chatParticipants.includes(participant))) {
-            return new Chat({ id: chatDoc.id, ...chatData });
-        }
-    }
-
+  if (exactMatchChats.length > 0) {
+    return exactMatchChats[0];
+  } else {
     return null;
+  }
 };
 
 export const sendMessage = async (chatId: string, senderId: string, content: string) => {
-    const message = new Message({ chatId, senderId, content });
-    await firestore.collection('chats').doc(chatId).collection('messages').add(message.toFirestore());
+  const message = new Message({ chatId, senderId, content });
+  await firestore.collection('chats').doc(chatId).collection('messages').add(message.toFirestore());
 };
 
 export const subscribeToMessages = (chatId: string, callback: (messages: Message[]) => void) => {
-    return firestore.collection('chats').doc(chatId).collection('messages')
-        .orderBy('timestamp')
-        .onSnapshot(snapshot => {
-            const messages = snapshot.docs.map(doc => new Message(doc.data()));
-            callback(messages);
-        });
+  return firestore.collection('chats').doc(chatId).collection('messages')
+    .orderBy('timestamp')
+    .onSnapshot(snapshot => {
+      const messages = snapshot.docs.map(doc => new Message(doc.data()));
+      callback(messages);
+    });
 };

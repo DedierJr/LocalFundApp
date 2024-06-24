@@ -1,3 +1,4 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/Mapa.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
@@ -6,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { firestore, auth } from '../firebase.js';
 import meuestilo from '../meuestilo.js';
 import { Post } from '../model/Post';
-import DetalhesPost from './DetalhesPost'; // Importe o componente DetalhesPost
+import DetalhesPost from './DetalhesPost'; 
 
 const Mapa = () => {
     const [formPost, setFormPost] = useState<Partial<Post>>({});
@@ -39,7 +40,6 @@ const Mapa = () => {
 
     const limparFormulario = () => {
         setFormPost({
-            title: '',
             content: '',
             lat: undefined,
             long: undefined
@@ -80,12 +80,6 @@ const Mapa = () => {
                 <>
                     <Text>Latitude: {formPost.lat}</Text>
                     <Text>Longitude: {formPost.long}</Text>
-                    <TextInput
-                        placeholder="Title"
-                        value={formPost.title || ''}
-                        onChangeText={title => setFormPost({ ...formPost, title })}
-                        style={MeuEstilo.input}
-                    />
                     <TextInput
                         placeholder="Content"
                         value={formPost.content || ''}
@@ -132,8 +126,7 @@ const Mapa = () => {
                                 <Marker
                                     key={`${post.id}-${index}`}
                                     coordinate={{ latitude: post.lat, longitude: post.long }}
-                                    title={post.title}
-                                    description={post.content}
+                                    title={post.content} // Changed from post.title to post.content
                                     onPress={() => {
                                         setPostSelecionado(post.id);
                                         setMostrarDetalhes(true);

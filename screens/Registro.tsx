@@ -1,3 +1,4 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/Registro.tsx
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, Alert } from 'react-native';
 import { auth, firestore, storage } from '../firebase';
@@ -18,20 +19,20 @@ const Registro = () => {
     try {
       const userCredentials = await auth.createUserWithEmailAndPassword(formUsuario.email || '', formUsuario.senha || '');
 
-      const urlFotoPerfil = await uploadFotoPerfil(userCredentials.user?.uid);
-
       if (userCredentials.user) {
         const refComIdUsuario = refUsuario.doc(userCredentials.user.uid);
+        const urlFotoPerfil = await uploadFotoPerfil(userCredentials.user.uid);
 
         await refComIdUsuario.set({
           id: userCredentials.user.uid,
-          username: formUsuario.username, // Inclua o campo username
-          nickname: formUsuario.nickname, // Inclua o campo nickname
+          username: formUsuario.username, 
+          nickname: formUsuario.nickname, 
           email: formUsuario.email,
           datanascimento: formUsuario.datanascimento,
           fotoPerfil: urlFotoPerfil,
           bio: formUsuario.bio,
-          friends: [] // Inicializa a lista de amigos vazia
+          followers: [],
+          following: []
         });
 
         console.log('Registered with:', userCredentials.user.email);
@@ -79,12 +80,7 @@ const Registro = () => {
     console.log('Fazendo upload da foto de perfil:', fotoPerfil);
 
     try {
-      const { uri } = await FileSystem.copyAsync({
-        from: fotoPerfil,
-        to: `${FileSystem.documentDirectory}fotosPerfil/${userId}`,
-      });
-
-      const response = await fetch(uri);
+      const response = await fetch(fotoPerfil);
       const blob = await response.blob();
       const ref = storage.ref().child(`fotosPerfil/${userId}`);
       await ref.put(blob);
@@ -96,7 +92,7 @@ const Registro = () => {
       return defaultPfp;
     }
   };
-  
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <View style={styles.inputContainer}>
@@ -117,6 +113,7 @@ const Registro = () => {
           value={formUsuario.senha}
           onChangeText={senha => setFormUsuario({ ...formUsuario, senha })}
           style={styles.input}
+          secureTextEntry
         />
         <TextInput
           placeholder="Data Nascimento"
@@ -183,7 +180,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 10, // Adicionei um espaçamento para separar o botão da foto
+    marginTop: 10,
   },
   buttonText: {
     color: 'white',

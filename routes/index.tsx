@@ -10,7 +10,8 @@ import Registro from "../screens/Registro";
 import DetalhesPost from "../screens/DetalhesPost";
 import SearchUsers from "../screens/SearchUsers";
 import ChatScreen from "../screens/ChatScreen";
-import FriendsListScreen from "../screens/FriendsListScreen";
+import FollowersListScreen from "../screens/FollowersListScreen";
+import FollowingListScreen from "../screens/FollowersListScreen";
 
 const Stack = createStackNavigator();
 
@@ -26,7 +27,8 @@ export default function Routes() {
                 <Stack.Screen name="Post" component={DetalhesPost} />
                 <Stack.Screen name="SearchUsers" component={SearchUsers} />
                 <Stack.Screen name="Chat" component={ChatScreen} />
-                <Stack.Screen name="FriendsList" component={FriendsListScreen} />
+                <Stack.Screen name="FollowersList" component={FollowersListScreen} />
+                <Stack.Screen name="FollowingList" component={FollowingListScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );
