@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { firestore } from '../firebase';
+import { firestore, auth } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
 import { Post } from '../model/Post';
 import { Usuario } from '../model/Usuario';
@@ -12,6 +12,7 @@ const ListarPosts: React.FC = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [users, setUsers] = useState<{ [key: string]: Usuario }>({});
     const navigation = useNavigation();
+    const currentUser = auth.currentUser; // Get the current user
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -54,11 +55,12 @@ const ListarPosts: React.FC = () => {
     }, []);
 
     const navigateToUserProfile = (userId: string) => {
-        if (userId) {
-            console.log('Navigating to user profile with ID:', userId); // Log para verificar a navegação
-            navigation.navigate('UserProfile', { userId });
+        // Check if the post belongs to the current user
+        if (userId === currentUser?.uid) {
+            navigation.navigate('CurrentUser'); // Navigate to CurrentUser screen
         } else {
-            console.error('User ID is undefined');
+            console.log('Navigating to user profile with ID:', userId);
+            navigation.navigate('UserProfile', { userId });
         }
     };
 

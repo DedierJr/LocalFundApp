@@ -6,4 +6,7 @@ interface Post {
   createdAt: Date;
   lat?: number;  // Adicionado campo opcional lat
   long?: number; // Adicionado campo opcional long
+  userProfilePicture?: string; // Add user profile picture URL
+  username?: string;  // Add user username
+  nickname?: string;  // Add user nickname
 }

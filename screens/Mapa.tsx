@@ -54,12 +54,25 @@ const Mapa = () => {
                 Alert.alert("Erro", "Usuário não está logado.");
                 return;
             }
+    
+            const userDoc = await firestore.collection('Usuario').doc(userId).get();
+            const userData = userDoc.data();
+    
+            if (!userData) {
+                Alert.alert("Erro", "Usuário não encontrado.");
+                return;
+            }
+    
             const post: Post = {
                 id: '',
                 userId,
                 ...formPost,
-                createdAt: new Date()
+                createdAt: new Date(),
+                userProfilePicture: userData?.profilePictureURL || '', // Default to empty string if undefined
+                username: userData?.username || '', // Default to empty string if undefined
+                nickname: userData?.nickname || '', // Default to empty string if undefined
             };
+    
             await firestore.collection('posts').add(post);
             Alert.alert("Sucesso", "Post adicionado com sucesso");
             limparFormulario();

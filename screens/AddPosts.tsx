@@ -8,21 +8,6 @@ import { Marcador } from '../model/Marcador';
 const AdicionarPost = () => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [marcadores, setMarcadores] = useState<Marcador[]>([]);
-    const [selectedMarcador, setSelectedMarcador] = useState<string | undefined>(undefined);
-
-    useEffect(() => {
-        const fetchMarcadores = async () => {
-            try {
-                const snapshot = await firestore.collection('Marcador').get();
-                const marcadoresData: Marcador[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Marcador));
-                setMarcadores(marcadoresData);
-            } catch (error) {
-                console.error('Erro ao buscar marcadores:', error);
-            }
-        };
-
-    }, []);
 
     const handleAdicionarPost = async () => {
         try {
@@ -33,10 +18,8 @@ const AdicionarPost = () => {
 
             await firestore.collection('posts').add({
                 userId,
-                title,
                 content,
                 createdAt: new Date(),
-                marcadorId: selectedMarcador || null
             });
             Alert.alert('Sucesso', 'Post adicionado com sucesso');
         } catch (error) {
@@ -47,19 +30,11 @@ const AdicionarPost = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>Título:</Text>
-            <TextInput
-                style={styles.input}
-                value={title}
-                onChangeText={setTitle}
-                placeholder="Digite o título do post"
-            />
-            <Text style={styles.label}>Conteúdo:</Text>
             <TextInput
                 style={[styles.input, styles.multilineInput]}
                 value={content}
                 onChangeText={setContent}
-                placeholder="Digite o conteúdo do post"
+                placeholder="O que está acontecendo?"
                 multiline
             />
             <Button title="Adicionar Post" onPress={handleAdicionarPost} />
