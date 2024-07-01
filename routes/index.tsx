@@ -7,8 +7,8 @@ import TabRoutes from "./tab.routes";
 import UserProfile from "../screens/UserProfile";
 import CurrentUser from "../screens/CurrentUser";
 import AddPosts from "../screens/AddPosts";
-import Registro from "../screens/Registro";
 import DetalhesPost from "../screens/DetalhesPost";
+import Registro from "../screens/Registro";
 import SearchUsers from "../screens/SearchUsers";
 import ChatScreen from "../screens/ChatScreen";
 import FollowersListScreen from "../screens/FollowersListScreen";
@@ -25,6 +25,7 @@ export default function Routes() {
                 <Stack.Screen name="UserProfile" component={UserProfile} />
                 <Stack.Screen name="CurrentUser" component={CurrentUser} />
                 <Stack.Screen name="AddPosts" component={AddPosts} />
+                <Stack.Screen name="DetalhesPost" component={DetalhesPost} />
                 <Stack.Screen name="Registro" component={Registro} />
                 <Stack.Screen name="Post" component={DetalhesPost} />
                 <Stack.Screen name="SearchUsers" component={SearchUsers} />

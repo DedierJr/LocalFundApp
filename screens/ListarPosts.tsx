@@ -30,6 +30,7 @@ const ListarPosts: React.FC = () => {
             const snapshot = await postsRef.get();
             const postsData: Post[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
             setPosts(postsData);
+            console.log(postsData);
         };
 
         fetchUsers();
@@ -64,6 +65,10 @@ const ListarPosts: React.FC = () => {
         }
     };
 
+    const navigateToPostDetails = (postId: string) => {
+        navigation.navigate('DetalhesPost', { postId });
+    };
+
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Listagem de Posts:</Text>
@@ -72,15 +77,14 @@ const ListarPosts: React.FC = () => {
                 keyExtractor={(item) => item.id || Math.random().toString()}
                 renderItem={({ item }) => (
                     <View style={styles.postContainer}>
-                        <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
+                        <TouchableOpacity onPress={() => navigateToPostDetails(item.id)}>
                             <Text style={styles.postContent}>{item.content}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
                             <Text style={styles.postAuthorNickname}>{users[item.userId]?.nickname}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
                             <Text style={styles.postAuthorUsername}>{users[item.userId]?.username}</Text>
-                            {item.lat && item.long && (
-                                <Text style={styles.postLocation}>
-                                    Localização: ({item.lat}, {item.long})
-                                </Text>
-                            )}
                         </TouchableOpacity>
                     </View>
                 )}

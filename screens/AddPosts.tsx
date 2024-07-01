@@ -1,67 +1,133 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/AddPosts.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { auth, firestore } from '../firebase';
-import { Marcador } from '../model/Marcador';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { firestore, auth } from '../firebase';
+import { useNavigation } from '@react-navigation/native';
+import { Post } from '../model/Post';
+import { Usuario } from '../model/Usuario';
+import AddPostBtn from '../components/AddPostBtn';
 
-const AdicionarPost = () => {
-    const [title, setTitle] = useState('');
-    const [content, setContent] = useState('');
+const ListarPosts: React.FC = () => {
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [users, setUsers] = useState<{ [key: string]: Usuario }>({});
+    const navigation = useNavigation();
+    const currentUser = auth.currentUser; // Get the current user
 
-    const handleAdicionarPost = async () => {
-        try {
-            const userId = auth.currentUser?.uid;
-            if (!userId) {
-                throw new Error('Usuário não autenticado');
-            }
-
-            await firestore.collection('posts').add({
-                userId,
-                content,
-                createdAt: new Date(),
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const usersRef = firestore.collection('Usuario');
+            const snapshot = await usersRef.get();
+            const usersData: { [key: string]: Usuario } = {};
+            snapshot.forEach((doc) => {
+                usersData[doc.id] = doc.data() as Usuario;
             });
-            Alert.alert('Sucesso', 'Post adicionado com sucesso');
-        } catch (error) {
-            console.error('Erro ao adicionar post:', error);
-            Alert.alert('Erro', 'Ocorreu um erro ao adicionar o post');
+            setUsers(usersData);
+        };
+
+        const fetchPosts = async () => {
+            const postsRef = firestore.collection('posts');
+            const snapshot = await postsRef.get();
+            const postsData: Post[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+            setPosts(postsData);
+        };
+
+        fetchUsers();
+        fetchPosts();
+
+        const unsubscribePosts = firestore.collection('posts').onSnapshot((snapshot) => {
+            const postsData: Post[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+            setPosts(postsData);
+        });
+
+        const unsubscribeUsers = firestore.collection('Usuario').onSnapshot((snapshot) => {
+            const usersData: { [key: string]: Usuario } = {};
+            snapshot.forEach((doc) => {
+                usersData[doc.id] = doc.data() as Usuario;
+            });
+            setUsers(usersData);
+        });
+
+        return () => {
+            unsubscribePosts();
+            unsubscribeUsers();
+        };
+    }, []);
+
+    const navigateToUserProfile = (userId: string) => {
+        // Check if the post belongs to the current user
+        if (userId === currentUser?.uid) {
+            navigation.navigate('CurrentUser'); // Navigate to CurrentUser screen
+        } else {
+            console.log('Navigating to user profile with ID:', userId);
+            navigation.navigate('UserProfile', { userId });
         }
+    };
+
+    const navigateToPostDetails = (postId: string) => {
+        navigation.navigate('DetalhesPost', { postId });
     };
 
     return (
         <View style={styles.container}>
-            <TextInput
-                style={[styles.input, styles.multilineInput]}
-                value={content}
-                onChangeText={setContent}
-                placeholder="O que está acontecendo?"
-                multiline
+            <Text style={styles.header}>Listagem de Posts:</Text>
+            <FlatList
+                data={posts}
+                keyExtractor={(item) => item.id || Math.random().toString()}
+                renderItem={({ item }) => (
+                    <View style={styles.postContainer}>
+                        <TouchableOpacity onPress={() => navigateToPostDetails(item.id)}>
+                            <Text style={styles.postContent}>{item.content}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
+                            <Text style={styles.postAuthorNickname}>{users[item.userId]?.nickname}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
+                            <Text style={styles.postAuthorUsername}>{users[item.userId]?.username}</Text>
+                        </TouchableOpacity>
+                        {item.userProfilePicture && (
+                            <Image source={{ uri: item.userProfilePicture }} style={styles.profilePicture} />
+                        )}
+                    </View>
+                )}
             />
-            <Button title="Adicionar Post" onPress={handleAdicionarPost} />
+            <AddPostBtn />
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         padding: 20,
     },
-    label: {
-        fontSize: 18,
-        marginBottom: 5,
+    header: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
     },
-
-    input: {
+    postContainer: {
         borderWidth: 1,
         borderColor: '#ccc',
-        borderRadius: 5,
+        borderRadius: 10,
         padding: 10,
         marginBottom: 10,
-        fontSize: 16,
     },
-    multilineInput: {
-        height: 100,
+    postContent: {
+        fontSize: 16,
+        marginBottom: 5,
+    },
+    postAuthorNickname: {
+        fontWeight: 'bold',
+        color: 'black',
+    },
+    postAuthorUsername: {
+        fontStyle: 'italic',
+    },
+    profilePicture: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        marginBottom: 8,
     },
 });
 
-export default AdicionarPost;
+export default ListarPosts;
