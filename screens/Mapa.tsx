@@ -1,5 +1,5 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/screens/Mapa.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import MeuEstilo from '../estiloMapa';
@@ -9,7 +9,7 @@ import meuestilo from '../meuestilo';
 import Post from '../model/Post';
 import DetalhesPost from './DetalhesPost';
 import { findPostsNearLocation } from '../services/postService';
-import firebase from 'firebase/compat/app'; // Importando firebase
+import firebase from 'firebase/compat/app';
 
 const Mapa = () => {
   const [formPost, setFormPost] = useState<Partial<Post>>({});
@@ -25,6 +25,9 @@ const Mapa = () => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const navigation = useNavigation();
 
+  // Use useRef to keep track of the listener
+  const postsListener = useRef<firebase.Unsubscribe | null>(null);
+
   useEffect(() => {
     // Load posts near the current position with a radius of 5km (adjust as needed)
     const loadPostsNearLocation = async () => {
@@ -36,7 +39,29 @@ const Mapa = () => {
       setPosts(postsNearLocation);
     };
 
+    // Set up the real-time listener for posts
+    const unsubscribe = firestore.collection('posts')
+      .where('location', '<', new firebase.firestore.GeoPoint(position.latitude + 5 / 111, position.longitude + 5 / 111))
+      .where('location', '>', new firebase.firestore.GeoPoint(position.latitude - 5 / 111, position.longitude - 5 / 111))
+      .onSnapshot((snapshot) => {
+        const newPosts: Post[] = [];
+        snapshot.forEach((doc) => {
+          newPosts.push({ id: doc.id, ...doc.data() } as Post); // Ensure type safety
+        });
+        setPosts(newPosts);
+      });
+
+    // Store the listener in useRef
+    postsListener.current = unsubscribe;
+
     loadPostsNearLocation();
+
+    // Cleanup the listener on unmount
+    return () => {
+      if (postsListener.current) {
+        postsListener.current();
+      }
+    };
   }, [position]); // Re-fetch posts when position changes
 
   const limparFormulario = () => {

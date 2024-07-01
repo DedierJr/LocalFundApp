@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, Button, Image, Alert, TouchableOpacity } from '
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
-import { createChat } from '../services/chatService';
+import { findChatByParticipants, createChat } from '../services/chatService';
 import { sendNotification } from '../services/notificationService';
 
 const UserProfile = ({ route, navigation }: any) => {
@@ -39,7 +39,7 @@ const UserProfile = ({ route, navigation }: any) => {
     getUser();
   }, [userId]);
 
-  const handleCreateChat = async () => {
+  const handleOpenChat = async () => {
     const currentUserId = auth.currentUser?.uid;
 
     if (!currentUserId || !userId) {
@@ -48,15 +48,22 @@ const UserProfile = ({ route, navigation }: any) => {
     }
 
     try {
-      const newChatId = await createChat([userId, currentUserId]);
-      if (!newChatId) {
-        console.error('Falha ao criar um novo chat.');
-        return;
+      const existingChat = await findChatByParticipants([userId, currentUserId]);
+      if (existingChat) {
+        setChatId(existingChat.id);
+        navigation.navigate('Chat', { chatId: existingChat.id, userId: currentUserId });
+      } else {
+        // Create a new chat if one doesn't exist
+        const newChatId = await createChat([userId, currentUserId]);
+        if (newChatId) {
+          setChatId(newChatId);
+          navigation.navigate('Chat', { chatId: newChatId, userId: currentUserId });
+        } else {
+          console.error('Falha ao criar um novo chat.');
+        }
       }
-      setChatId(newChatId);
-      navigation.navigate('Chat', { chatId: newChatId, userId: currentUserId });
     } catch (error) {
-      console.error('Erro ao criar chat:', error);
+      console.error('Erro ao abrir chat:', error);
     }
   };
 
@@ -137,15 +144,9 @@ const UserProfile = ({ route, navigation }: any) => {
         <Button title="Follow" onPress={handleFollow} />
       )}
 
-      {chatId ? (
-        <TouchableOpacity onPress={() => navigation.navigate('Chat', { chatId })}>
-          <Icon name="chat" size={30} color="#000" />
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity onPress={handleCreateChat}>
-          <Icon name="chat" size={30} color="#000" />
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity onPress={handleOpenChat}>
+        <Icon name="chat" size={30} color="#000" />
+      </TouchableOpacity>
     </View>
   );
 };
