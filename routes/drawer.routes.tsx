@@ -25,7 +25,6 @@ export default function DrawerRoutes() {
             name='Home'
             component={TabRoutes}
         />
-        <Drawer.Screen name="Login" component={Login} />
         <Drawer.Screen name="Perfil" component={CurrentUser}/>
         <Drawer.Screen name="Listar Posts" component={ListarPosts} />
       </Drawer.Navigator>

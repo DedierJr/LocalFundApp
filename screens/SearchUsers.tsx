@@ -1,5 +1,4 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/screens/SearchUsers.tsx
-
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -64,7 +63,7 @@ const SearchUsers = () => {
           <View style={styles.resultContainer}>
             <Text style={styles.result}>{item.username}</Text>
             <TouchableOpacity onPress={() => handleAddFriend(item.id)}>
-              <Text style={styles.addFriendBtn}>Adicionar</Text>
+              <Text style={styles.addFriendBtn}>Seguir</Text>
             </TouchableOpacity>
           </View>
         )}
