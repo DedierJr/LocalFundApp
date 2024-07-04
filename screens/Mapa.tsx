@@ -10,6 +10,7 @@ import Post from '../model/Post';
 import DetalhesPost from './DetalhesPost';
 import { findPostsNearLocation } from '../services/postService';
 import firebase from 'firebase/compat/app';
+import AddPostBtn from '../components/AddPostBtn';
 
 const Mapa = () => {
   const [formPost, setFormPost] = useState<Partial<Post>>({});

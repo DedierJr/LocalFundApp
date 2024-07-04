@@ -5,7 +5,7 @@ import DrawerRoutes from './drawer.routes';
 import TabRoutes from './tab.routes';
 import UserProfile from '../screens/UserProfile';
 import CurrentUser from '../screens/CurrentUser';
-import AddPosts from '../screens/AddPosts';
+import AddPost from '../screens/AddPost';
 import DetalhesPost from '../screens/DetalhesPost';
 import Registro from '../screens/Registro';
 import SearchUsers from '../screens/SearchUsers';
@@ -42,7 +42,7 @@ export default function Routes() {
           <Stack.Screen name="TabRoutes" component={TabRoutes} />
           <Stack.Screen name="UserProfile" component={UserProfile} />
           <Stack.Screen name="CurrentUser" component={CurrentUser} />
-          <Stack.Screen name="AddPosts" component={AddPosts} />
+          <Stack.Screen name="AddPost" component={AddPost} />
           <Stack.Screen name="DetalhesPost" component={DetalhesPost} />
           <Stack.Screen name="SearchUsers" component={SearchUsers} />
           <Stack.Screen name="Chat" component={ChatScreen} />

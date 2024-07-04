@@ -7,7 +7,7 @@ const AddPostBtn = () => {
   const navigation = useNavigation();
 
   const handlePress = () => {
-    navigation.navigate('AddPosts');
+    navigation.navigate('AddPost');
   };
 
   return (
