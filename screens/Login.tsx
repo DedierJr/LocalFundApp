@@ -1,34 +1,33 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/Login.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
+import { View, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import { auth } from "../firebase";
-import { useNavigation } from '@react-navigation/native';
+// import { useNavigation } from '@react-navigation/native'; // No longer needed
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [usuario, setUsuario] = useState(null); // Estado para armazenar o usuário logado
-  const navigation = useNavigation();
+  // const navigation = useNavigation(); // No longer needed
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
-      if (user) {
-        // Usuário está logado - redireciona para a home
-        navigation.navigate('Home');
-      } else {
-        // Usuário não está logado
-        setUsuario(null);
-      }
-    });
+  // useEffect(() => { // Remove this useEffect hook
+  //   const unsubscribe = auth.onAuthStateChanged(user => {
+  //     if (user) {
+  //       navigation.reset({
+  //         index: 0,
+  //         routes: [{ name: 'DrawerRoutes' }],
+  //       });
+  //     }
+  //   });
 
-    return unsubscribe; // Função de limpeza para remover o observador ao desmontar o componente
-  }, []);
+  //   return unsubscribe;
+  // }, [navigation]); // Remove this useEffect hook
 
   const handleLogin = async () => {
     try {
       const response = await auth.signInWithEmailAndPassword(email, senha);
       if (response.user) {
-        // Login bem-sucedido - redireciona para a home (já feito no useEffect)
         console.log('Login bem-sucedido:', response.user.email);
+        // The navigation reset now happens in the Routes component
       } else {
         Alert.alert('Erro', 'Usuário não encontrado');
       }
@@ -39,7 +38,7 @@ const Login = () => {
   };
 
   const handlePress = () => {
-    navigation.navigate('Registro');
+    // navigation.navigate('Registro'); // No longer needed as the navigation happens in the Routes component
   };
 
   return (
@@ -60,37 +59,21 @@ const Login = () => {
         secureTextEntry
       />
       <View style={styles.buttonContainer}>
-        <Button
-          title="Login"
-          onPress={handleLogin}
-          color="blue"
-        />
+        <Button title="Login" onPress={handleLogin} color="blue" />
       </View>
       <View style={styles.buttonContainer}>
-        <Button
-          title="Registrar"
-          onPress={handlePress}
-          color="blue"
-        />
+        <Button title="Registrar" onPress={handlePress} color="blue" />
       </View>
-      {usuario && <Text>Você está logado como {usuario.email}</Text>}
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: 'white', // Optional light background color
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: 'bold', // Add emphasis to labels
-    marginBottom: 5,
-    color: '#333', // Adjust text color for better contrast
+    backgroundColor: 'white',
   },
   input: {
     width: '100%',
@@ -100,13 +83,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
-    backgroundColor: '#fff', // Optional white background for better input visibility
+    backgroundColor: '#fff',
   },
   buttonContainer: {
     width: '100%',
     marginVertical: 2,
-    flexDirection: 'row', // Allow for horizontal button arrangements if needed
-    justifyContent: 'center', // Center buttons horizontally within the container
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
 });
 

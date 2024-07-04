@@ -1,23 +1,25 @@
+// /home/aluno/Documentos/DedierJr/LocalFundApp/App.tsx
 import 'react-native-gesture-handler';
 import React, { useEffect, useState } from 'react';
-import Routes, { Login } from './routes'; // Importação ajustada
-import { auth } from './firebase';
-import { NavigationContainer } from '@react-navigation/native';
+import Routes from './routes'; 
+import { auth } from './firebase'; 
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setIsLoggedIn(!!user);
-    });
+    // Wrap in a Promise
+    new Promise((resolve) => {
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        setIsLoggedIn(!!user);
+        resolve(); // Resolve the promise after the authentication state change
+      });
 
-    return unsubscribe;
+      return unsubscribe; // Return the unsubscribe function for cleanup
+    });
   }, []);
 
   return (
-    <NavigationContainer>
-      {isLoggedIn ? <Routes /> : <Login />} 
-    </NavigationContainer>
+    <Routes isLoggedIn={isLoggedIn} /> 
   );
 }

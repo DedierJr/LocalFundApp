@@ -15,187 +15,149 @@ const Registro = () => {
 
   const defaultPfp = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
 
-  const criarRegistro = async () => {
-    try {
-      const userCredentials = await auth.createUserWithEmailAndPassword(formUsuario.email || '', formUsuario.senha || '');
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
 
-      if (userCredentials.user) {
-        const refComIdUsuario = refUsuario.doc(userCredentials.user.uid);
-        const urlFotoPerfil = await uploadFotoPerfil(userCredentials.user.uid);
-
-        await refComIdUsuario.set({
-          id: userCredentials.user.uid,
-          username: formUsuario.username, 
-          nickname: formUsuario.nickname, 
-          email: formUsuario.email,
-          datanascimento: formUsuario.datanascimento,
-          fotoPerfil: urlFotoPerfil,
-          bio: formUsuario.bio,
-          followers: [],
-          following: []
-        });
-
-        console.log('Registered with:', userCredentials.user.email);
-        navigation.navigate("Login");
-      }
-    } catch (error) {
-      console.error('Erro ao criar registro:', error);
-      Alert.alert('Erro', 'Ocorreu um erro ao fazer o registro');
+    if (!result.canceled) {
+      const pickedUri = result.assets[0].uri;
+      setFotoPerfil(pickedUri);
     }
   };
 
-  const cancelar = () => {
-    navigation.navigate("Login");
+  const handleSaveImage = async (userId: string): Promise<string> => {
+    if (!fotoPerfil) return defaultPfp;
+
+    const response = await FileSystem.readAsStringAsync(fotoPerfil, { encoding: FileSystem.EncodingType.Base64 });
+    const blob = await fetch(`data:image/jpeg;base64,${response}`).then(res => res.blob());
+
+    const storageRef = storage.ref().child(`perfil/${userId}`);
+    await storageRef.put(blob);
+
+    const downloadURL = await storageRef.getDownloadURL();
+    return downloadURL;
   };
 
-  const escolherFotoPerfil = async () => {
+  const handleRegistro = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permissão negada', 'Você precisa permitir o acesso à galeria para selecionar uma foto.');
-        return;
-      }
+      const credenciais = await auth.createUserWithEmailAndPassword(formUsuario.email!, formUsuario.senha!);
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+      const fotoUrl = await handleSaveImage(credenciais.user?.uid!);
 
-      if (!result.canceled) {
-        setFotoPerfil(result.assets[0].uri);
-      }
+      const usuarioCompleto: Usuario = {
+        ...formUsuario,
+        id: credenciais.user?.uid!,
+        fotoPerfil: fotoUrl,
+      } as Usuario;
+
+      await refUsuario.doc(credenciais.user?.uid!).set(usuarioCompleto);
+
+      Alert.alert('Sucesso', 'Usuário registrado com sucesso!');
+      navigation.navigate('Login');
     } catch (error) {
-      console.error('Erro ao escolher foto de perfil:', error);
-    }
-  };
-
-  const uploadFotoPerfil = async (userId: string | undefined) => {
-    if (!fotoPerfil || !userId) {
-      console.log('Foto de perfil ou userId inválidos');
-      return defaultPfp;
-    }
-
-    console.log('Fazendo upload da foto de perfil:', fotoPerfil);
-
-    try {
-      const response = await fetch(fotoPerfil);
-      const blob = await response.blob();
-      const ref = storage.ref().child(`fotosPerfil/${userId}`);
-      await ref.put(blob);
-      const url = await ref.getDownloadURL();
-      console.log('Upload da foto de perfil concluído:', url);
-      return url;
-    } catch (error) {
-      console.error('Erro ao fazer upload da foto de perfil:', error);
-      return defaultPfp;
+      console.error('Erro ao registrar usuário:', error);
+      Alert.alert('Erro', 'Ocorreu um erro ao registrar o usuário.');
     }
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
       <View style={styles.inputContainer}>
         <TextInput
-          placeholder="Username"
-          value={formUsuario.username}
-          onChangeText={username => setFormUsuario({ ...formUsuario, username })}
+          placeholder="Nome"
+          value={formUsuario.nome}
+          onChangeText={(text) => setFormUsuario({ ...formUsuario, nome: text })}
           style={styles.input}
         />
         <TextInput
           placeholder="Email"
           value={formUsuario.email}
-          onChangeText={email => setFormUsuario({ ...formUsuario, email })}
+          onChangeText={(text) => setFormUsuario({ ...formUsuario, email: text })}
           style={styles.input}
+          keyboardType="email-address"
         />
         <TextInput
           placeholder="Senha"
           value={formUsuario.senha}
-          onChangeText={senha => setFormUsuario({ ...formUsuario, senha })}
+          onChangeText={(text) => setFormUsuario({ ...formUsuario, senha: text })}
           style={styles.input}
           secureTextEntry
         />
         <TextInput
-          placeholder="Data Nascimento"
+          placeholder="Data de Nascimento"
           value={formUsuario.datanascimento}
-          onChangeText={datanascimento => setFormUsuario({ ...formUsuario, datanascimento })}
+          onChangeText={(text) => setFormUsuario({ ...formUsuario, datanascimento: text })}
           style={styles.input}
         />
-        <TextInput
-          placeholder="Nickname"
-          value={formUsuario.nickname}
-          onChangeText={nickname => setFormUsuario({ ...formUsuario, nickname })}
-          style={styles.input}
-        />
-        <TouchableOpacity onPress={escolherFotoPerfil} style={styles.button}>
-          <Text style={styles.buttonText}>Escolher Foto de Perfil</Text>
+        <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
+          <Text style={styles.imagePickerText}>Escolher Foto de Perfil</Text>
         </TouchableOpacity>
-        {fotoPerfil ? <Text>{fotoPerfil}</Text> : null}
-        <TextInput
-          placeholder="Bio"
-          value={formUsuario.bio}
-          onChangeText={bio => setFormUsuario({ ...formUsuario, bio })}
-          style={styles.input}
-        />
       </View>
+
       <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={criarRegistro} style={styles.button}>
+        <TouchableOpacity onPress={handleRegistro} style={styles.button}>
           <Text style={styles.buttonText}>Registrar</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={cancelar} style={[styles.button, styles.buttonOutline]}>
-          <Text style={styles.buttonOutlineText}>Cancelar</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.button}>
+          <Text style={styles.buttonText}>Já tem uma conta? Faça login</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
 };
 
-export default Registro;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+    backgroundColor: 'white',
   },
   inputContainer: {
-    width: '80%',
+    width: '100%',
   },
   input: {
-    backgroundColor: 'white',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginTop: 5,
+    width: '100%',
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+  },
+  imagePicker: {
+    alignItems: 'center',
+    backgroundColor: '#ddd',
+    padding: 10,
+    borderRadius: 5,
+  },
+  imagePickerText: {
+    color: '#000',
   },
   buttonContainer: {
-    width: '60%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 40,
+    width: '100%',
+    marginVertical: 10,
   },
   button: {
-    backgroundColor: '#0782F9',
-    width: '100%',
+    backgroundColor: 'blue',
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 5,
     alignItems: 'center',
-    marginTop: 10,
+    marginBottom: 10,
   },
   buttonText: {
     color: 'white',
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  buttonOutline: {
-    backgroundColor: 'white',
-    marginTop: 5,
-    borderColor: '#0782F9',
-    borderWidth: 2,
-  },
-  buttonOutlineText: {
-    color: '#0782F9',
-    fontWeight: '700',
-    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
+
+export default Registro;
