@@ -1,23 +1,23 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/screens/Mapa.tsx
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import MeuEstilo from '../estiloMapa';
-import { useNavigation } from '@react-navigation/native';
-import { firestore, auth } from '../firebase';
-import meuestilo from '../meuestilo';
-import Post from '../model/Post';
-import DetalhesPost from './DetalhesPost';
-import { findPostsNearLocation } from '../services/postService';
-import firebase from 'firebase/compat/app';
-import AddPostBtn from '../components/AddPostBtn';
+import React, { useEffect, useState, useRef } from "react";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import MeuEstilo from "../estiloMapa";
+import { useNavigation } from "@react-navigation/native";
+import { firestore, auth } from "../firebase";
+import meuestilo from "../meuestilo";
+import PostModel from "../model/Post";
+import DetalhesPost from "./DetalhesPost";
+import { findPostsNearLocation, createPost } from "../services/postService";
+import firebase from "firebase/compat/app";
+import { getUserById } from "../services/userService";
 
 const Mapa = () => {
-  const [formPost, setFormPost] = useState<Partial<Post>>({});
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [formPost, setFormPost] = useState<Partial<PostModel>>({});
+  const [posts, setPosts] = useState<PostModel[]>([]);
   const [postSelecionado, setPostSelecionado] = useState<string | null>(null);
   const [position, setPosition] = useState({
-    latitude: -31.308840,
+    latitude: -31.30884,
     longitude: -54.113702,
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
@@ -41,13 +41,28 @@ const Mapa = () => {
     };
 
     // Set up the real-time listener for posts
-    const unsubscribe = firestore.collection('posts')
-      .where('location', '<', new firebase.firestore.GeoPoint(position.latitude + 5 / 111, position.longitude + 5 / 111))
-      .where('location', '>', new firebase.firestore.GeoPoint(position.latitude - 5 / 111, position.longitude - 5 / 111))
+    const unsubscribe = firestore
+      .collection("posts")
+      .where(
+        "location",
+        "<",
+        new firebase.firestore.GeoPoint(
+          position.latitude + 5 / 111,
+          position.longitude + 5 / 111
+        )
+      )
+      .where(
+        "location",
+        ">",
+        new firebase.firestore.GeoPoint(
+          position.latitude - 5 / 111,
+          position.longitude - 5 / 111
+        )
+      )
       .onSnapshot((snapshot) => {
-        const newPosts: Post[] = [];
+        const newPosts: PostModel[] = [];
         snapshot.forEach((doc) => {
-          newPosts.push({ id: doc.id, ...doc.data() } as Post); // Ensure type safety
+          newPosts.push(new PostModel({ id: doc.id, ...doc.data() })); // Ensure type safety
         });
         setPosts(newPosts);
       });
@@ -67,7 +82,7 @@ const Mapa = () => {
 
   const limparFormulario = () => {
     setFormPost({
-      content: '',
+      content: "",
       lat: undefined,
       long: undefined,
     });
@@ -78,35 +93,47 @@ const Mapa = () => {
     try {
       const userId = auth.currentUser?.uid;
       if (!userId) {
-        Alert.alert('Erro', 'Usuário não está logado.');
+        Alert.alert("Erro", "Usuário não está logado.");
         return;
       }
 
-      const userDoc = await firestore.collection('Usuario').doc(userId).get();
-      const userData = userDoc.data();
+      const userDoc = await getUserById(userId);
 
-      if (!userData) {
-        Alert.alert('Erro', 'Usuário não encontrado.');
+      if (!userDoc) {
+        Alert.alert("Erro", "Usuário não encontrado.");
         return;
       }
 
-      const post: Post = {
-        id: '',
+      const userData = userDoc.toFirestore(); // Access data after checking existence
+
+      // Create a new PostModel instance
+      const newPost = new PostModel({
+        id: "",
         userId,
         ...formPost,
         createdAt: new Date(),
-        userProfilePicture: userData?.profilePictureURL || '', // Default to empty string if undefined
-        username: userData?.username || '', // Default to empty string if undefined
-        nickname: userData?.nickname || '', // Default to empty string if undefined
-        location: new firebase.firestore.GeoPoint(formPost.lat || 0, formPost.long || 0), // Use GeoPoint for location
-      };
+        userProfilePicture: userData?.fotoPerfil || "",
+        username: userData?.username || "",
+        nickname: userData?.nickname || "",
+        location: new firebase.firestore.GeoPoint(
+          formPost.lat || 0,
+          formPost.long || 0
+        ),
+        likes: [], // Add likes array
+        comments: [], // Add comments array
+      });
 
-      await firestore.collection('posts').add(post);
-      Alert.alert('Sucesso', 'Post adicionado com sucesso');
-      limparFormulario();
+      const createdPost = await createPost(newPost);
+      if (createdPost) {
+        setPosts([...posts, createdPost]);
+        Alert.alert("Sucesso", "Post adicionado com sucesso");
+        limparFormulario();
+      } else {
+        Alert.alert("Erro", "Ocorreu um erro ao salvar o post.");
+      }
     } catch (error) {
-      Alert.alert('Erro', 'Ocorreu um erro ao salvar o post.');
-      console.error('Erro ao salvar o post:', error);
+      Alert.alert("Erro", "Ocorreu um erro ao salvar o post.");
+      console.error("Erro ao salvar o post:", error);
     }
   };
 
@@ -114,7 +141,7 @@ const Mapa = () => {
     <View style={MeuEstilo.container}>
       {mostrarDetalhes ? (
         <DetalhesPost
-          post={posts.find(p => p.id === postSelecionado)}
+          post={posts.find((p) => p.id === postSelecionado)}
           onVoltar={() => setMostrarDetalhes(false)}
         />
       ) : mostrarFormulario ? (
@@ -123,8 +150,8 @@ const Mapa = () => {
           <Text>Longitude: {formPost.long}</Text>
           <TextInput
             placeholder="Content"
-            value={formPost.content || ''}
-            onChangeText={content => setFormPost({ ...formPost, content })}
+            value={formPost.content || ""}
+            onChangeText={(content) => setFormPost({ ...formPost, content })}
             style={MeuEstilo.input}
           />
           <TouchableOpacity
@@ -162,11 +189,14 @@ const Mapa = () => {
               setMostrarFormulario(true);
             }}
           >
-            {posts.map((post, index) => (
+            {posts.map((post, index) =>
               post.location ? ( // Check if post has location data
                 <Marker
                   key={`${post.id}-${index}`}
-                  coordinate={{ latitude: post.location.latitude, longitude: post.location.longitude }}
+                  coordinate={{
+                    latitude: post.location.latitude,
+                    longitude: post.location.longitude,
+                  }}
                   title={post.content}
                   onPress={() => {
                     setPostSelecionado(post.id);
@@ -174,7 +204,7 @@ const Mapa = () => {
                   }}
                 />
               ) : null
-            ))}
+            )}
           </MapView>
         </>
       )}
