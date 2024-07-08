@@ -4,9 +4,9 @@ import { View, Text, StyleSheet, Button, Image, Alert, TouchableOpacity } from '
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
-import { findChatByParticipants, createChat } from '../services/chatService';
+import { findChatByParticipants, createChat } from '../services/chatService'; // Import the correct function
 import { sendNotification } from '../services/notificationService';
-import { getUserById, isFollowing, followUser, unfollowUser } from '../services/userService';
+import { getUserById, isFollowing, followUser, unfollowUser } from '../services/userService'; // Import the correct function
 
 const UserProfile = ({ route, navigation }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
@@ -17,13 +17,20 @@ const UserProfile = ({ route, navigation }: any) => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const fetchedUser = await getUserById(userId);
-        if (fetchedUser) {
-          setUser(fetchedUser);
-          const followingStatus = await isFollowing(userId);
-          setIsFollowing(followingStatus);
+        const userRef = firestore.collection('Usuario').doc(userId);
+        const doc = await userRef.get();
+
+        if (doc.exists) {
+          const userData = doc.data();
+          if (userData) {
+            const usuario = new Usuario(userData);
+            setUser(usuario);
+            checkFollowingStatus(usuario);
+          } else {
+            console.error('Dados do usuário estão vazios.');
+          }
         } else {
-          console.error('Usuário não encontrado.');
+          console.log('Usuário não encontrado');
         }
       } catch (error) {
         console.error('Erro ao buscar usuário:', error);
@@ -61,23 +68,57 @@ const UserProfile = ({ route, navigation }: any) => {
     }
   };
 
+  const checkFollowingStatus = async (usuario: Usuario) => {
+    const currentUserId = auth.currentUser?.uid;
+    if (!currentUserId) {
+      return;
+    }
+    setIsFollowing(usuario.followers.includes(currentUserId));
+  };
+
   const handleFollow = async () => {
-    const success = await followUser(userId);
-    if (success) {
+    const currentUserId = auth.currentUser?.uid;
+
+    if (!currentUserId || !userId || !user) {
+      console.error('IDs de usuário inválidos.');
+      return;
+    }
+
+    try {
+      await firestore.collection('Usuario').doc(userId).update({
+        followers: [...user.followers, currentUserId]
+      });
+      await firestore.collection('Usuario').doc(currentUserId).update({
+        following: [...user.following, userId]
+      });
+      
+      sendNotification(userId, `começou a te seguir!`, 'followed');
       setIsFollowing(true);
       Alert.alert('Successo', 'Você agora está seguindo este usuário.');
-    } else {
-      console.error('Erro ao seguir usuário.');
+    } catch (error) {
+      console.error('Erro ao seguir usuário:', error);
     }
   };
 
   const handleUnfollow = async () => {
-    const success = await unfollowUser(userId);
-    if (success) {
+    const currentUserId = auth.currentUser?.uid;
+
+    if (!currentUserId || !userId || !user) {
+      console.error('IDs de usuário inválidos.');
+      return;
+    }
+
+    try {
+      await firestore.collection('Usuario').doc(userId).update({
+        followers: user.followers.filter(followerId => followerId !== currentUserId)
+      });
+      await firestore.collection('Usuario').doc(currentUserId).update({
+        following: user.following.filter(followingId => followingId !== userId)
+      });
       setIsFollowing(false);
       Alert.alert('Successo', 'Você deixou de seguir este usuário.');
-    } else {
-      console.error('Erro ao deixar de seguir usuário.');
+    } catch (error) {
+      console.error('Erro ao deixar de seguir usuário:', error);
     }
   };
 
@@ -136,7 +177,7 @@ const styles = StyleSheet.create({
   bio: {
     fontSize: 14,
     textAlign: 'center',
-    marginHorizontal: 20, 
+    marginHorizontal: 20,
   },
 });
 

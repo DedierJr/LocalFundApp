@@ -1,145 +1,59 @@
-// /LocalFundApp/services/postService.ts
-import { firestore, geoFirestore } from '../firebase';
-import firebase from 'firebase/compat/app';
-import PostModel from '../model/Post';
+// /home/aluno/Documentos/DedierJr/LocalFundApp/services/chatService.ts
+import { firestore } from '../firebase';
+import { Chat } from '../model/Chat';
 
-export const createPost = async (post: PostModel) => {
-  // Use geoFirestore.collection() for geohash-based indexing
-  const postRef = await geoFirestore.collection('posts').add(post.toFirestore());
-  const newPostId = postRef.id;
+export const createChat = async (participants: string[]) => {
+  const existingChat = await findChatByParticipants(participants);
+  if (existingChat) {
+    return existingChat.id;
+  }
 
-  // Update the post object with the new ID
-  const newPost = new PostModel({ ...post, id: newPostId });
+  const chat = new Chat({ participants });
+  const chatRef = await firestore.collection('chats').add(chat.toFirestore());
+  const newChatId = chatRef.id;
 
-  // Update user's "posts" array (assuming users have a "posts" field)
-  await firestore.collection('Usuario').doc(post.userId).update({
-    posts: firebase.firestore.FieldValue.arrayUnion(newPostId)
-  });
+  // Update each participant's "chats" array
+  await Promise.all(participants.map(async (userId) => {
+    const userRef = firestore.collection('Usuario').doc(userId);
+    await userRef.update({
+      chats: firestore.FieldValue.arrayUnion(newChatId) // Added 'chats' field
+    });
+  }));
 
-  return newPost;
+  return newChatId;
 };
 
-export const findPostById = async (postId: string): Promise<PostModel | null> => {
-  const postRef = firestore.collection('posts').doc(postId);
-  const postDoc = await postRef.get();
+export const findChatByParticipants = async (participants: string[]): Promise<Chat | null> => {
+  const chatsCollection = firestore.collection('chats');
+  const chatsQuery = await chatsCollection
+    .where('participants', 'array-contains-any', participants)
+    .get();
 
-  if (postDoc.exists) {
-    return PostModel.fromFirestore(postDoc);
+  const matchingChats = chatsQuery.docs.map(doc => new Chat({ id: doc.id, ...doc.data() }));
+
+  // Filtra os chats que contêm todos os participantes
+  const exactMatchChats = matchingChats.filter(chat =>
+    participants.every(participant => chat.participants.includes(participant)) &&
+    chat.participants.length === participants.length
+  );
+
+  if (exactMatchChats.length > 0) {
+    return exactMatchChats[0];
   } else {
     return null;
   }
 };
 
-export const findPostsByUserId = async (userId: string): Promise<PostModel[]> => {
-  const postsQuery = firestore.collection('posts').where('userId', '==', userId);
-  const postsSnapshot = await postsQuery.get();
-
-  return postsSnapshot.docs.map(doc => PostModel.fromFirestore(doc));
+export const sendMessage = async (chatId: string, senderId: string, content: string) => {
+  const message = new Message({ chatId, senderId, content });
+  await firestore.collection('chats').doc(chatId).collection('messages').add(message.toFirestore());
 };
 
-// Find posts within a specified radius from a given location
-export const findPostsNearLocation = async (lat: number, long: number, radius: number): Promise<PostModel[]> => {
-  const geopoint = new firebase.firestore.GeoPoint(lat, long);
-
-  // Use geohash-based query for efficient distance filtering
-  const postsQuery = firestore.collection('posts')
-    .where('location', '<', new firebase.firestore.GeoPoint(lat + radius / 111, long + radius / 111))
-    .where('location', '>', new firebase.firestore.GeoPoint(lat - radius / 111, long - radius / 111));
-
-  const postsSnapshot = await postsQuery.get();
-  return postsSnapshot.docs.map(doc => PostModel.fromFirestore(doc));
-};
-
-export const subscribeToPosts = (userId: string, callback: (posts: PostModel[]) => void) => {
-  return firestore.collection('posts').where('userId', '==', userId)
-    .orderBy('createdAt', 'desc')
+export const subscribeToMessages = (chatId: string, callback: (messages: Message[]) => void) => {
+  return firestore.collection('chats').doc(chatId).collection('messages')
+    .orderBy('timestamp')
     .onSnapshot(snapshot => {
-      const posts = snapshot.docs.map(doc => PostModel.fromFirestore(doc));
-      callback(posts);
+      const messages = snapshot.docs.map(doc => new Message(doc.data()));
+      callback(messages);
     });
-};
-
-export const updatePost = async (post: PostModel) => {
-  try {
-    await firestore.collection('posts').doc(post.id).update(post.toFirestore());
-    return true;
-  } catch (error) {
-    console.error('Erro ao atualizar post:', error);
-    return false;
-  }
-};
-
-export const deletePost = async (postId: string) => {
-  try {
-    await firestore.collection('posts').doc(postId).delete();
-    return true;
-  } catch (error) {
-    console.error('Erro ao deletar post:', error);
-    return false;
-  }
-};
-
-export const likePost = async (postId: string, userId: string) => {
-  try {
-    const postRef = firestore.collection('posts').doc(postId);
-    const postDoc = await postRef.get();
-
-    if (postDoc.exists) {
-      const post = postDoc.data() as PostModel;
-      if (post.likes && !post.likes.includes(userId)) {
-        await postRef.update({
-          likes: firebase.firestore.FieldValue.arrayUnion(userId)
-        });
-        return true;
-      } else {
-        console.error('Post já curtido ou não encontrado.');
-        return false;
-      }
-    } else {
-      console.error('Post não encontrado.');
-      return false;
-    }
-  } catch (error) {
-    console.error('Erro ao curtir post:', error);
-    return false;
-  }
-};
-
-export const unlikePost = async (postId: string, userId: string) => {
-  try {
-    const postRef = firestore.collection('posts').doc(postId);
-    const postDoc = await postRef.get();
-
-    if (postDoc.exists) {
-      const post = postDoc.data() as PostModel;
-      if (post.likes && post.likes.includes(userId)) {
-        await postRef.update({
-          likes: firebase.firestore.FieldValue.arrayRemove(userId)
-        });
-        return true;
-      } else {
-        console.error('Post não curtido ou não encontrado.');
-        return false;
-      }
-    } else {
-      console.error('Post não encontrado.');
-      return false;
-    }
-  } catch (error) {
-    console.error('Erro ao remover curtida do post:', error);
-    return false;
-  }
-};
-
-export const addComment = async (postId: string, userId: string, comment: string) => {
-  try {
-    const postRef = firestore.collection('posts').doc(postId);
-    await postRef.update({
-      comments: firebase.firestore.FieldValue.arrayUnion({ userId, comment })
-    });
-    return true;
-  } catch (error) {
-    console.error('Erro ao adicionar comentário:', error);
-    return false;
-  }
 };
