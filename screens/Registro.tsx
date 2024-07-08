@@ -1,4 +1,4 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/Registro.tsx
+// /LocalFundApp/screens/Registro.tsx
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, Alert } from 'react-native';
 import { auth, firestore, storage } from '../firebase';
@@ -6,10 +6,24 @@ import { Usuario } from '../model/Usuario';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
+import DateTimePicker from '@react-native-community/datetimepicker'; // Import DateTimePicker
 
 const Registro = () => {
-  const [formUsuario, setFormUsuario] = useState<Partial<Usuario>>({});
+  const [formUsuario, setFormUsuario] = useState<Partial<Usuario>>({
+    username: '',
+    nickname: '',
+    email: '',
+    senha: '',
+    datanascimento: new Date(), 
+    fotoPerfil: '',
+    bio: '',
+    followers: [],
+    following: [],
+    chats: []
+  });
   const [fotoPerfil, setFotoPerfil] = useState<string>('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date()); // Initial date
   const refUsuario = firestore.collection("Usuario");
   const navigation = useNavigation();
 
@@ -26,6 +40,7 @@ const Registro = () => {
     if (!result.canceled) {
       const pickedUri = result.assets[0].uri;
       setFotoPerfil(pickedUri);
+      setFormUsuario({ ...formUsuario, fotoPerfil: pickedUri }); // Update formUsuario
     }
   };
 
@@ -52,6 +67,7 @@ const Registro = () => {
         ...formUsuario,
         id: credenciais.user?.uid!,
         fotoPerfil: fotoUrl,
+        senhaHash: formUsuario.senha! // Set senhaHash in the database
       } as Usuario;
 
       await refUsuario.doc(credenciais.user?.uid!).set(usuarioCompleto);
@@ -64,6 +80,16 @@ const Registro = () => {
     }
   };
 
+  const handleDateChange = (event: any, selectedDate: Date) => {
+    const currentDate = selectedDate || formUsuario.datanascimento; // Use current date if no selection
+    setShowDatePicker(Platform.OS === 'ios'); // Close the picker on iOS
+    setFormUsuario({ ...formUsuario, datanascimento: currentDate }); 
+  };
+
+  const showDatePickerHandler = () => {
+    setShowDatePicker(true);
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -71,9 +97,15 @@ const Registro = () => {
     >
       <View style={styles.inputContainer}>
         <TextInput
-          placeholder="Nome"
-          value={formUsuario.nome}
-          onChangeText={(text) => setFormUsuario({ ...formUsuario, nome: text })}
+          placeholder="Nome de Usuário"
+          value={formUsuario.username}
+          onChangeText={(text) => setFormUsuario({ ...formUsuario, username: text })}
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Apelido"
+          value={formUsuario.nickname}
+          onChangeText={(text) => setFormUsuario({ ...formUsuario, nickname: text })}
           style={styles.input}
         />
         <TextInput
@@ -90,12 +122,18 @@ const Registro = () => {
           style={styles.input}
           secureTextEntry
         />
-        <TextInput
-          placeholder="Data de Nascimento"
-          value={formUsuario.datanascimento}
-          onChangeText={(text) => setFormUsuario({ ...formUsuario, datanascimento: text })}
-          style={styles.input}
-        />
+        <TouchableOpacity onPress={showDatePickerHandler} style={styles.input}>
+          <Text style={styles.input}>{formUsuario.datanascimento ? formUsuario.datanascimento.toLocaleDateString() : 'Data de Nascimento'}</Text> 
+        </TouchableOpacity> 
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            is24Hour={true}
+            display="default"
+            onChange={handleDateChange}
+          />
+        )}
         <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
           <Text style={styles.imagePickerText}>Escolher Foto de Perfil</Text>
         </TouchableOpacity>

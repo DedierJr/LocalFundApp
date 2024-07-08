@@ -1,6 +1,7 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/services/chatService.ts
 import { firestore } from '../firebase';
 import { Chat } from '../model/Chat';
+import { Message } from '../model/Message';
 
 export const createChat = async (participants: string[]) => {
   const existingChat = await findChatByParticipants(participants);
@@ -15,8 +16,9 @@ export const createChat = async (participants: string[]) => {
   // Update each participant's "chats" array
   await Promise.all(participants.map(async (userId) => {
     const userRef = firestore.collection('Usuario').doc(userId);
+    // Use arrayUnion to add the new chatId to the existing array
     await userRef.update({
-      chats: firestore.FieldValue.arrayUnion(newChatId) // Added 'chats' field
+      chats: firestore.FieldValue.arrayUnion(newChatId) 
     });
   }));
 
@@ -51,9 +53,9 @@ export const sendMessage = async (chatId: string, senderId: string, content: str
 
 export const subscribeToMessages = (chatId: string, callback: (messages: Message[]) => void) => {
   return firestore.collection('chats').doc(chatId).collection('messages')
-    .orderBy('timestamp')
+    .orderBy('timestamp', 'asc')
     .onSnapshot(snapshot => {
-      const messages = snapshot.docs.map(doc => new Message(doc.data()));
+      const messages = snapshot.docs.map(doc => new Message({ id: doc.id, ...doc.data() }));
       callback(messages);
     });
 };

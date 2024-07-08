@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, Button } from 'react-native';
 import { firestore, auth } from '../firebase';
+import { Message } from '../model/Message'; // Make sure you have a Message model
 
 const ChatScreen = ({ route }: any) => {
   const { chatId } = route.params;
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]); // Use Message[] type
   const [newMessage, setNewMessage] = useState('');
   const currentUserId = auth.currentUser?.uid;
 
@@ -13,12 +14,12 @@ const ChatScreen = ({ route }: any) => {
     const unsubscribe = firestore.collection('chats')
       .doc(chatId)
       .collection('messages')
-      .orderBy('createdAt', 'asc')
+      .orderBy('createdAt', 'asc') // Or orderBy('timestamp', 'asc') if you use timestamp
       .onSnapshot((querySnapshot) => {
         const messages = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data()
-        }));
+        })) as Message[]; // Cast to Message[]
         setMessages(messages);
       });
 
@@ -37,7 +38,7 @@ const ChatScreen = ({ route }: any) => {
         .add({
           text: newMessage,
           senderId: currentUserId,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString() // Or use timestamp
         });
       setNewMessage('');
     } catch (error) {

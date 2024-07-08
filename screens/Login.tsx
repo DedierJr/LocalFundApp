@@ -1,44 +1,29 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/Login.tsx
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, Alert, StyleSheet } from 'react-native';
-import { auth } from "../firebase";
-// import { useNavigation } from '@react-navigation/native'; // No longer needed
+import React, { useState } from 'react';
+import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, Alert, Button } from 'react-native';
+import { auth } from '../firebase';
+import { useNavigation } from '@react-navigation/native';
+import { StackActions } from '@react-navigation/native'; 
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  // const navigation = useNavigation(); // No longer needed
-
-  // useEffect(() => { // Remove this useEffect hook
-  //   const unsubscribe = auth.onAuthStateChanged(user => {
-  //     if (user) {
-  //       navigation.reset({
-  //         index: 0,
-  //         routes: [{ name: 'DrawerRoutes' }],
-  //       });
-  //     }
-  //   });
-
-  //   return unsubscribe;
-  // }, [navigation]); // Remove this useEffect hook
+  const navigation = useNavigation();
 
   const handleLogin = async () => {
     try {
-      const response = await auth.signInWithEmailAndPassword(email, senha);
-      if (response.user) {
-        console.log('Login bem-sucedido:', response.user.email);
-        // The navigation reset now happens in the Routes component
-      } else {
-        Alert.alert('Erro', 'Usuário não encontrado');
-      }
+      await auth.signInWithEmailAndPassword(email, senha);
+      // After successful login, navigate to the desired screen
+      navigation.dispatch(StackActions.replace('DrawerRoutes'));  // Navigate to DrawerRoutes
     } catch (error) {
-      console.error('Erro ao fazer login:', error);
-      Alert.alert('Erro', 'Ocorreu um erro ao fazer login');
+      console.error('Erro no login:', error);
+      Alert.alert('Erro', 'Email ou senha inválidos.');
     }
   };
 
-  const handlePress = () => {
-    // navigation.navigate('Registro'); // No longer needed as the navigation happens in the Routes component
+  const handleRegister = () => {
+    // Handle registration logic here
+    // For example, navigate to the registration screen
+    navigation.navigate('Register'); // Assuming 'Register' is your registration screen
   };
 
   return (
@@ -62,11 +47,12 @@ const Login = () => {
         <Button title="Login" onPress={handleLogin} color="blue" />
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Registrar" onPress={handlePress} color="blue" />
+        <Button title="Registrar" onPress={handleRegister} color="blue" />
       </View>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
