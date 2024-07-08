@@ -1,19 +1,20 @@
-      
 // /home/aluno/Documentos/DedierJr/LocalFundApp/screens/AddPost.tsx
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { auth, firestore } from '../firebase';
 import PostModel from '../model/Post';
+import { createPost } from '../services/postService';
 
 const AddPost = () => {
   const [content, setContent] = useState('');
-  
+  const [location, setLocation] = useState<firebase.firestore.GeoPoint | null>(null); // State for location
+
   const handleAddPost = async () => {
     if (content.trim() === '') {
       Alert.alert('Erro', 'Por favor, insira um conteúdo para o post.');
       return;
     }
-  
+
     try {
       const currentUser = auth.currentUser;
       if (currentUser) {
@@ -21,22 +22,15 @@ const AddPost = () => {
           userId: currentUser.uid,
           content,
           createdAt: new Date(),
-          // Explicitly set lat, long, location, and nickname to null
-          lat: null, 
-          long: null,
-          location: null, 
-          nickname: null, 
+          location, // Set the location from the state
           userProfilePicture: currentUser.photoURL, 
           username: currentUser.displayName,
         });
-  
-        // Convert to plain object before adding to Firestore
-        const plainPostObject = { ...newPost }; 
-  
-        // Change the collection name to 'posts'
-        await firestore.collection('posts').add(plainPostObject); 
+
+        const createdPost = await createPost(newPost);
         Alert.alert('Sucesso', 'Post criado com sucesso!');
-        setContent(''); // Clear the input field
+        setContent('');
+        setLocation(null); // Clear the location state
       } else {
         Alert.alert('Erro', 'Você precisa estar logado para criar um post.');
       }

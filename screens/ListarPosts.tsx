@@ -3,17 +3,17 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { firestore, auth } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
-import { Post } from '../model/Post';
-import { Usuario } from '../model/Usuario';
+import PostModel from '../model/Post';
+import Usuario from '../model/Usuario';
 import AddPostBtn from '../components/AddPostBtn';
 import { getPosts, getUsers } from '../services/userService';
 import { deletePost } from '../services/postService';
 
 const ListarPosts: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<PostModel[]>([]); 
   const [users, setUsers] = useState<{ [key: string]: Usuario }>({});
   const navigation = useNavigation();
-  const currentUser = auth.currentUser; // Get the current user
+  const currentUser = auth.currentUser;
 
   useEffect(() => {
     const fetchPostsAndUsers = async () => {
@@ -26,7 +26,7 @@ const ListarPosts: React.FC = () => {
     fetchPostsAndUsers();
 
     const unsubscribePosts = firestore.collection('posts').onSnapshot((snapshot) => {
-      const postsData: Post[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+      const postsData: PostModel[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PostModel));
       setPosts(postsData);
     });
 

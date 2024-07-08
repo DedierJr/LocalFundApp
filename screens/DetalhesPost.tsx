@@ -1,15 +1,14 @@
-// /LocalFundApp/screens/DetalhesPost.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, Button } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, Button, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { PostModel } from '../model/Post'; // Import PostModel class
+import PostModel from '../model/Post'; 
 import { updatePost, likePost, unlikePost, addComment } from '../services/postService';
 import { getUserById } from '../services/userService';
 import { firestore, auth } from '../firebase';
-
+import Usuario from '../model/Usuario';
 
 interface DetalhesPostProps {
-  post: PostModel | undefined; // Use PostModel type
+  post: PostModel | undefined; 
   onVoltar: () => void;
 }
 
@@ -46,19 +45,6 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ post, onVoltar }) => {
     checkLikeStatus();
     fetchCommentAuthors();
   }, [post, currentUser]);
-
-  useEffect(() => {
-    const unsubscribe = firestore.collection('posts').doc(post?.id).onSnapshot(snapshot => {
-      if (snapshot.exists) {
-        // Update the post state with the updated data
-        // (You might need to adjust this depending on how you handle post updates)
-        // For example:
-        // setPost(new PostModel(snapshot.data()));
-      }
-    });
-
-    return () => unsubscribe();
-  }, [post]); // Refetch data when post changes
 
   if (!post) {
     return (
@@ -161,9 +147,9 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ post, onVoltar }) => {
           </TouchableOpacity>
         </>
       )}
-      {post.lat && post.long && (
+      {post.location && (
         <Text style={styles.coordinates}>
-          Coordenadas: ({post.lat}, {post.long})
+          Coordenadas: ({post.location.latitude}, {post.location.longitude})
         </Text>
       )}
       <View style={styles.likeCommentContainer}>

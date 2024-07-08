@@ -1,43 +1,43 @@
 // /LocalFundApp/services/postService.ts
 import { firestore } from '../firebase';
-import firebase from 'firebase/compat/app'; // Importando firebase
-import PostModel from '../model/Post'; // Import the PostModel class
+import firebase from 'firebase/compat/app';
+import PostModel from '../model/Post';
 
-export const createPost = async (post: PostModel) => { // Use PostModel as parameter type
-  const postRef = await firestore.collection('posts').add(post.toFirestore()); // Convert to Firestore object
+export const createPost = async (post: PostModel) => {
+  const postRef = await firestore.collection('posts').add(post.toFirestore());
   const newPostId = postRef.id;
 
   // Update the post object with the new ID
-  const newPost = new PostModel({ ...post, id: newPostId }); // Create new PostModel
+  const newPost = new PostModel({ ...post, id: newPostId });
 
   // Update user's "posts" array (assuming users have a "posts" field)
   await firestore.collection('Usuario').doc(post.userId).update({
-    posts: firebase.firestore.FieldValue.arrayUnion(newPostId) // Corrigido
+    posts: firebase.firestore.FieldValue.arrayUnion(newPostId)
   });
 
-  return newPost; // Return the updated post with the ID
+  return newPost;
 };
 
-export const findPostById = async (postId: string): Promise<PostModel | null> => { // Return PostModel type
+export const findPostById = async (postId: string): Promise<PostModel | null> => {
   const postRef = firestore.collection('posts').doc(postId);
   const postDoc = await postRef.get();
 
   if (postDoc.exists) {
-    return new PostModel({ id: postDoc.id, ...postDoc.data() }); // Create new PostModel
+    return PostModel.fromFirestore(postDoc);
   } else {
     return null;
   }
 };
 
-export const findPostsByUserId = async (userId: string): Promise<PostModel[]> => { // Return PostModel array
+export const findPostsByUserId = async (userId: string): Promise<PostModel[]> => {
   const postsQuery = firestore.collection('posts').where('userId', '==', userId);
   const postsSnapshot = await postsQuery.get();
 
-  return postsSnapshot.docs.map(doc => new PostModel({ id: doc.id, ...doc.data() })); // Create new PostModel
+  return postsSnapshot.docs.map(doc => PostModel.fromFirestore(doc));
 };
 
 // Find posts within a specified radius from a given location
-export const findPostsNearLocation = async (lat: number, long: number, radius: number): Promise<PostModel[]> => { // Return PostModel array
+export const findPostsNearLocation = async (lat: number, long: number, radius: number): Promise<PostModel[]> => {
   const geopoint = new firebase.firestore.GeoPoint(lat, long);
 
   // Use geohash-based query for efficient distance filtering
@@ -46,35 +46,35 @@ export const findPostsNearLocation = async (lat: number, long: number, radius: n
     .where('location', '>', new firebase.firestore.GeoPoint(lat - radius / 111, long - radius / 111));
 
   const postsSnapshot = await postsQuery.get();
-  return postsSnapshot.docs.map(doc => new PostModel({ id: doc.id, ...doc.data() })); // Create new PostModel
+  return postsSnapshot.docs.map(doc => PostModel.fromFirestore(doc));
 };
 
-export const subscribeToPosts = (userId: string, callback: (posts: PostModel[]) => void) => { // Pass PostModel array to callback
+export const subscribeToPosts = (userId: string, callback: (posts: PostModel[]) => void) => {
   return firestore.collection('posts').where('userId', '==', userId)
     .orderBy('createdAt', 'desc')
     .onSnapshot(snapshot => {
-      const posts = snapshot.docs.map(doc => new PostModel({ id: doc.id, ...doc.data() })); // Create new PostModel
+      const posts = snapshot.docs.map(doc => PostModel.fromFirestore(doc));
       callback(posts);
     });
 };
 
-export const updatePost = async (post: PostModel) => { // Use PostModel as parameter type
+export const updatePost = async (post: PostModel) => {
   try {
     await firestore.collection('posts').doc(post.id).update(post.toFirestore());
-    return true; // Indicate success
+    return true;
   } catch (error) {
     console.error('Erro ao atualizar post:', error);
-    return false; // Indicate failure
+    return false;
   }
 };
 
 export const deletePost = async (postId: string) => {
   try {
     await firestore.collection('posts').doc(postId).delete();
-    return true; // Indicate success
+    return true;
   } catch (error) {
     console.error('Erro ao deletar post:', error);
-    return false; // Indicate failure
+    return false;
   }
 };
 
@@ -84,8 +84,8 @@ export const likePost = async (postId: string, userId: string) => {
     const postDoc = await postRef.get();
 
     if (postDoc.exists) {
-      // No need to create a new PostModel here, as you're just updating likes
-      if (postDoc.data().likes && !postDoc.data().likes.includes(userId)) {
+      const post = postDoc.data() as PostModel;
+      if (post.likes && !post.likes.includes(userId)) {
         await postRef.update({
           likes: firebase.firestore.FieldValue.arrayUnion(userId)
         });
@@ -110,8 +110,8 @@ export const unlikePost = async (postId: string, userId: string) => {
     const postDoc = await postRef.get();
 
     if (postDoc.exists) {
-      // No need to create a new PostModel here, as you're just updating likes
-      if (postDoc.data().likes && postDoc.data().likes.includes(userId)) {
+      const post = postDoc.data() as PostModel;
+      if (post.likes && post.likes.includes(userId)) {
         await postRef.update({
           likes: firebase.firestore.FieldValue.arrayRemove(userId)
         });
