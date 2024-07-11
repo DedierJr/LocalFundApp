@@ -1,4 +1,3 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/CurrentUser.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, Alert } from 'react-native';
 import { Usuario } from '../model/Usuario';
@@ -10,15 +9,19 @@ const CurrentUser = ({ navigation }: any) => {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
       if (user) {
-        firestore.collection('Usuario').doc(user.uid).get().then(doc => {
-          if (doc.exists) {
-            const userData = doc.data();
-            const usuario = new Usuario(userData);
-            setCurrentUser(usuario);
-          } else {
-            console.error("No such user document!");
-          }
-        }).catch(error => console.error("Error getting user document:", error));
+        // Get the user data from Firestore using the user's UID (user.uid)
+        firestore.collection('Usuario').doc(user.uid).get()
+          .then(doc => {
+            if (doc.exists) {
+              const userData = doc.data();
+              // Create a new Usuario object with the retrieved data and the ID
+              const usuario = new Usuario({ ...userData, id: doc.id }); 
+              setCurrentUser(usuario);
+            } else {
+              console.error("No such user document!");
+            }
+          })
+          .catch(error => console.error("Error getting user document:", error));
       } else {
         console.error("User not logged in");
       }

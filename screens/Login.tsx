@@ -23,7 +23,7 @@ const Login = () => {
   const handleRegister = () => {
     // Handle registration logic here
     // For example, navigate to the registration screen
-    navigation.navigate('Register'); // Assuming 'Register' is your registration screen
+    navigation.navigate('Registro'); // Assuming 'Register' is your registration screen
   };
 
   return (

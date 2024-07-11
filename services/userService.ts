@@ -1,4 +1,4 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/services/userService.ts
+// /LocalFundApp/services/userService.ts
 import { firestore, auth } from '../firebase';
 import { Usuario } from '../model/Usuario';
 import { sendNotification } from './notificationService';

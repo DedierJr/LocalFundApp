@@ -35,7 +35,6 @@ export class Usuario {
 
     toFirestore() {
         return {
-            id: this.id,
             username: this.username,
             nickname: this.nickname,
             email: this.email,
