@@ -4,16 +4,24 @@ import "firebase/compat/firestore";
 import 'firebase/compat/storage'; 
 import { GeoFirestore } from "geofirestore"; // Importando geofirestore
 
-// Sua configuração do Firebase
+// Your web app's Firebase configuration
+
 const firebaseConfig = {
-  apiKey: "AIzaSyDLmAQPCkJMu7tBh3awT2A7BLM67hQtEH8",
-  authDomain: "marcador5.firebaseapp.com",
-  projectId: "marcador5",
-  storageBucket: "marcador5.appspot.com",
-  messagingSenderId: "582137120159",
-  appId: "1:582137120159:web:bb10ea3c31f4c1910129aa",
-  measurementId: "G-7FY01PSVV2"
+
+  apiKey: "AIzaSyCHG2xwzr_JaXgIQ0uWGJaMfXD3kcSFSBA",
+
+  authDomain: "marcador7-6be96.firebaseapp.com",
+
+  projectId: "marcador7-6be96",
+
+  storageBucket: "marcador7-6be96.appspot.com",
+
+  messagingSenderId: "440041304080",
+
+  appId: "1:440041304080:web:d809c7125407f199a49a95"
+
 };
+
 
 let app;
 if (firebase.apps.length === 0) {

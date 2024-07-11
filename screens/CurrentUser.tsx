@@ -1,5 +1,6 @@
+// /LocalFundApp/screens/CurrentUser.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button, Alert } from 'react-native';
+import { View, Text, StyleSheet, Button, Alert, Image } from 'react-native';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
 
@@ -47,7 +48,12 @@ const CurrentUser = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       <Text>Bem-vindo, {currentUser.username}!</Text>
-
+      {currentUser.fotoPerfil && (
+        <Image 
+          style={styles.profilePicture}
+          source={{ uri: currentUser.fotoPerfil }}
+        />
+      )}
       <Button
         title="Followers"
         onPress={() => navigation.navigate('FollowersList', { userId: currentUser.id })}
@@ -69,6 +75,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  profilePicture: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 20,
+  }
 });
 
 export default CurrentUser;

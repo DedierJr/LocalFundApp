@@ -1,12 +1,11 @@
 // /LocalFundApp/screens/Registro.tsx
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, Alert } from 'react-native';
+import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, Alert, Image } from 'react-native';
 import { auth, firestore, storage } from '../firebase';
 import { Usuario } from '../model/Usuario';
 import { useNavigation } from '@react-navigation/native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
-import DateTimePicker from '@react-native-community/datetimepicker'; // Import DateTimePicker
 
 const Registro = () => {
   const [formUsuario, setFormUsuario] = useState<Partial<Usuario>>({
@@ -15,136 +14,155 @@ const Registro = () => {
     email: '',
     senha: '',
     datanascimento: new Date(), 
-    fotoPerfil: '',
+    fotoPerfil: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png', // Default PFP
     bio: '',
     followers: [],
     following: [],
     chats: []
   });
-  const [fotoPerfil, setFotoPerfil] = useState<string>('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date()); // Initial date
+  const [selectedDate, setSelectedDate] = useState(new Date()); 
+  const [imageUri, setImageUri] = useState<string | null>(null); 
   const refUsuario = firestore.collection("Usuario");
   const navigation = useNavigation();
 
-  const defaultPfp = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
+  const handleRegister = async () => {
+    const { username, nickname, email, senha, bio, datanascimento } = formUsuario;
 
-  const handlePickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const pickedUri = result.assets[0].uri;
-      setFotoPerfil(pickedUri);
-      setFormUsuario({ ...formUsuario, fotoPerfil: pickedUri }); // Update formUsuario
+    if (!username || !nickname || !email || !senha) {
+      Alert.alert('Erro', 'Todos os campos são obrigatórios.');
+      return;
     }
-  };
 
-  const handleSaveImage = async (userId: string): Promise<string> => {
-    if (!fotoPerfil) return defaultPfp;
-
-    const response = await FileSystem.readAsStringAsync(fotoPerfil, { encoding: FileSystem.EncodingType.Base64 });
-    const blob = await fetch(`data:image/jpeg;base64,${response}`).then(res => res.blob());
-
-    const storageRef = storage.ref().child(`perfil/${userId}`);
-    await storageRef.put(blob);
-
-    const downloadURL = await storageRef.getDownloadURL();
-    return downloadURL;
-  };
-
-  const handleRegistro = async () => {
     try {
-      const credenciais = await auth.createUserWithEmailAndPassword(formUsuario.email!, formUsuario.senha!);
+      console.log('Tentando criar usuário com email e senha...');
+      const { user } = await auth.createUserWithEmailAndPassword(email!, senha!);
+      const userId = user.uid;
+      console.log('Usuário criado com sucesso, UID:', userId);
 
-      const fotoUrl = await handleSaveImage(credenciais.user?.uid!);
+      // Upload da foto de perfil para o Storage
+      let fotoPerfilUrl = '';
+      if (imageUri) {
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        const uploadTask = storage().ref(`profile-pics/${userId}`).put(blob);
+        await uploadTask;
+        fotoPerfilUrl = await uploadTask.snapshot.ref.getDownloadURL();
+      }
 
-      const usuarioCompleto: Usuario = {
-        ...formUsuario,
-        id: credenciais.user?.uid!,
-        fotoPerfil: fotoUrl,
-        senhaHash: formUsuario.senha! // Set senhaHash in the database
-      } as Usuario;
+      const newUser = new Usuario({
+        id: userId,
+        username,
+        nickname,
+        email,
+        senha,
+        datanascimento,
+        fotoPerfil: fotoPerfilUrl || formUsuario.fotoPerfil, // Use a URL do Storage se disponível, senão o padrão
+        bio,
+        followers: [],
+        following: [],
+        chats: []
+      });
 
-      await refUsuario.doc(credenciais.user?.uid!).set(usuarioCompleto);
+      console.log('Tentando salvar o usuário no Firestore...');
+      await refUsuario.doc(userId).set(newUser.toFirestore());
+      console.log('Usuário salvo no Firestore com sucesso');
 
       Alert.alert('Sucesso', 'Usuário registrado com sucesso!');
       navigation.navigate('Login');
     } catch (error) {
       console.error('Erro ao registrar usuário:', error);
-      Alert.alert('Erro', 'Ocorreu um erro ao registrar o usuário.');
+      Alert.alert('Erro', 'Erro ao registrar usuário. Tente novamente.');
     }
   };
 
-  const handleDateChange = (event: any, selectedDate: Date) => {
-    const currentDate = selectedDate || formUsuario.datanascimento; // Use current date if no selection
-    setShowDatePicker(Platform.OS === 'ios'); // Close the picker on iOS
-    setFormUsuario({ ...formUsuario, datanascimento: currentDate }); 
+  const onDateChange = (event: Event, selectedDate?: Date) => {
+    const currentDate = selectedDate || new Date();
+    setShowDatePicker(Platform.OS === 'ios');
+    setSelectedDate(currentDate);
+    setFormUsuario({ ...formUsuario, datanascimento: currentDate });
   };
 
-  const showDatePickerHandler = () => {
-    setShowDatePicker(true);
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      setImageUri(result.uri);
+    }
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.inputContainer}>
         <TextInput
-          placeholder="Nome de Usuário"
+          placeholder="Username"
           value={formUsuario.username}
-          onChangeText={(text) => setFormUsuario({ ...formUsuario, username: text })}
+          onChangeText={text => setFormUsuario({ ...formUsuario, username: text })}
           style={styles.input}
         />
         <TextInput
-          placeholder="Apelido"
+          placeholder="Nickname"
           value={formUsuario.nickname}
-          onChangeText={(text) => setFormUsuario({ ...formUsuario, nickname: text })}
+          onChangeText={text => setFormUsuario({ ...formUsuario, nickname: text })}
           style={styles.input}
         />
         <TextInput
           placeholder="Email"
           value={formUsuario.email}
-          onChangeText={(text) => setFormUsuario({ ...formUsuario, email: text })}
+          onChangeText={text => setFormUsuario({ ...formUsuario, email: text })}
           style={styles.input}
-          keyboardType="email-address"
         />
         <TextInput
           placeholder="Senha"
           value={formUsuario.senha}
-          onChangeText={(text) => setFormUsuario({ ...formUsuario, senha: text })}
+          onChangeText={text => setFormUsuario({ ...formUsuario, senha: text })}
           style={styles.input}
           secureTextEntry
         />
-        <TouchableOpacity onPress={showDatePickerHandler} style={styles.input}>
-          <Text style={styles.input}>{formUsuario.datanascimento ? formUsuario.datanascimento.toLocaleDateString() : 'Data de Nascimento'}</Text> 
-        </TouchableOpacity> 
+        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+          <Text style={styles.dateText}>
+            Data de nascimento: {selectedDate.toLocaleDateString()}
+          </Text>
+        </TouchableOpacity>
         {showDatePicker && (
           <DateTimePicker
             value={selectedDate}
             mode="date"
-            is24Hour={true}
             display="default"
-            onChange={handleDateChange}
+            onChange={onDateChange}
           />
         )}
-        <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
-          <Text style={styles.imagePickerText}>Escolher Foto de Perfil</Text>
-        </TouchableOpacity>
+        <TextInput
+          placeholder="Bio"
+          value={formUsuario.bio}
+          onChangeText={text => setFormUsuario({ ...formUsuario, bio: text })}
+          style={styles.input}
+        />
+
+        <View style={styles.imageContainer}>
+          {imageUri ? (
+            <Image source={{ uri: imageUri }} style={styles.profileImage} />
+          ) : (
+            <Image source={{ uri: formUsuario.fotoPerfil }} style={styles.profileImage} />
+          )}
+          <TouchableOpacity onPress={pickImage} style={styles.uploadButton}>
+            <Text style={styles.uploadButtonText}>Upload Foto</Text>
+          </TouchableOpacity>
+        </View>
+
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={handleRegistro} style={styles.button}>
+        <TouchableOpacity onPress={handleRegister} style={styles.button}>
           <Text style={styles.buttonText}>Registrar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.button}>
-          <Text style={styles.buttonText}>Já tem uma conta? Faça login</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -156,43 +174,59 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: 'white',
-  },
-  inputContainer: {
-    width: '100%',
-  },
-  input: {
-    width: '100%',
-    height: 40,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
     backgroundColor: '#fff',
   },
-  imagePicker: {
-    alignItems: 'center',
-    backgroundColor: '#ddd',
-    padding: 10,
-    borderRadius: 5,
+  inputContainer: {
+    width: '80%',
   },
-  imagePickerText: {
-    color: '#000',
+  input: {
+    backgroundColor: '#F6F6F6',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 5,
+    marginBottom: 10,
   },
   buttonContainer: {
-    width: '100%',
-    marginVertical: 10,
+    width: '60%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
   },
   button: {
-    backgroundColor: 'blue',
+    backgroundColor: '#0782F9',
+    width: '100%',
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
-    marginBottom: 10,
   },
   buttonText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  dateText: {
+    color: '#0782F9',
+    fontSize: 16,
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  imageContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  uploadButton: {
+    backgroundColor: '#0782F9',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  uploadButtonText: {
     color: 'white',
     fontWeight: 'bold',
   },

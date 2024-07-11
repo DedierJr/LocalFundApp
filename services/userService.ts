@@ -28,10 +28,10 @@ export const followUser = async (userId: string) => {
 
     if (!user.followers.includes(currentUserId)) {
       await userRef.update({
-        followers: [...user.followers, currentUserId]
+        followers: [...user.followers, currentUserId],
       });
       await currentUserRef.update({
-        following: [...currentUser.following, userId]
+        following: [...currentUser.following, userId],
       });
 
       sendNotification(userId, `começou a te seguir!`, 'followed');
@@ -72,10 +72,10 @@ export const unfollowUser = async (userId: string) => {
 
     if (user.followers.includes(currentUserId)) {
       await userRef.update({
-        followers: user.followers.filter(followerId => followerId !== currentUserId)
+        followers: user.followers.filter(followerId => followerId !== currentUserId),
       });
       await currentUserRef.update({
-        following: currentUser.following.filter(followingId => followingId !== userId)
+        following: currentUser.following.filter(followingId => followingId !== userId),
       });
 
       return true;
@@ -153,10 +153,10 @@ export const searchUsers = async (searchTerm: string) => {
       .get();
 
     const users = snapshot.docs
-      .filter(doc => doc.id !== currentUserId) // Exclui o usuário atual dos resultados
+      .filter(doc => doc.id !== currentUserId) 
       .map(doc => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
 
     return users;
