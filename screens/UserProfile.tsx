@@ -1,16 +1,13 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/UserProfile.tsx
+// /LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, Image, Alert, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
-import { findChatByParticipants, createChat } from '../services/chatService'; // Import the correct function
-import { sendNotification } from '../services/notificationService';
-import { getUserById, isFollowing, followUser, unfollowUser } from '../services/userService'; // Import the correct function
+import { openChat, followUser, unfollowUser } from '../services/chatService'; // Import the correct function
 
 const UserProfile = ({ route, navigation }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
-  const [chatId, setChatId] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const { userId } = route.params;
 
@@ -40,34 +37,6 @@ const UserProfile = ({ route, navigation }: any) => {
     getUser();
   }, [userId]);
 
-  const handleOpenChat = async () => {
-    const currentUserId = auth.currentUser?.uid;
-
-    if (!currentUserId || !userId) {
-      console.error('IDs de usuário inválidos.');
-      return;
-    }
-
-    try {
-      const existingChat = await findChatByParticipants([userId, currentUserId]);
-      if (existingChat) {
-        setChatId(existingChat.id);
-        navigation.navigate('Chat', { chatId: existingChat.id, userId: currentUserId });
-      } else {
-        // Create a new chat if one doesn't exist
-        const newChatId = await createChat([userId, currentUserId]);
-        if (newChatId) {
-          setChatId(newChatId);
-          navigation.navigate('Chat', { chatId: newChatId, userId: currentUserId });
-        } else {
-          console.error('Falha ao criar um novo chat.');
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao abrir chat:', error);
-    }
-  };
-
   const checkFollowingStatus = async (usuario: Usuario) => {
     const currentUserId = auth.currentUser?.uid;
     if (!currentUserId) {
@@ -77,49 +46,19 @@ const UserProfile = ({ route, navigation }: any) => {
   };
 
   const handleFollow = async () => {
-    const currentUserId = auth.currentUser?.uid;
-
-    if (!currentUserId || !userId || !user) {
-      console.error('IDs de usuário inválidos.');
+    if (!user) {
       return;
     }
-
-    try {
-      await firestore.collection('Usuario').doc(userId).update({
-        followers: [...user.followers, currentUserId]
-      });
-      await firestore.collection('Usuario').doc(currentUserId).update({
-        following: [...user.following, userId]
-      });
-      
-      sendNotification(userId, `começou a te seguir!`, 'followed');
-      setIsFollowing(true);
-      Alert.alert('Successo', 'Você agora está seguindo este usuário.');
-    } catch (error) {
-      console.error('Erro ao seguir usuário:', error);
-    }
+    followUser(userId, user, navigation);
+    setIsFollowing(true);
   };
 
   const handleUnfollow = async () => {
-    const currentUserId = auth.currentUser?.uid;
-
-    if (!currentUserId || !userId || !user) {
-      console.error('IDs de usuário inválidos.');
+    if (!user) {
       return;
     }
-
-    try {
-      await firestore.collection('Usuario').doc(userId).update({
-        followers: user.followers.filter(followerId => followerId !== currentUserId)
-      });
-      await firestore.collection('Usuario').doc(currentUserId).update({
-        following: user.following.filter(followingId => followingId !== userId)
-      });
-      setIsFollowing(false);
-      Alert.alert('Successo', 'Você deixou de seguir este usuário.');
-    } catch (error) {
-      console.error('Erro ao deixar de seguir usuário:', error);
-    }
+    unfollowUser(userId, user, navigation);
+    setIsFollowing(false);
   };
 
   if (!user) {
@@ -145,7 +84,7 @@ const UserProfile = ({ route, navigation }: any) => {
         <Button title="Follow" onPress={handleFollow} />
       )}
 
-      <TouchableOpacity onPress={handleOpenChat}>
+      <TouchableOpacity onPress={() => openChat(userId, navigation)}>
         <Icon name="chat" size={30} color="#000" />
       </TouchableOpacity>
     </View>

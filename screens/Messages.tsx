@@ -1,10 +1,11 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/Messages.tsx
+// /LocalFundApp/screens/Messages.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { firestore, auth } from '../firebase';
 import { Chat } from '../model/Chat';
 import { ChatItem } from '../components/ChatItem';
 import { useNavigation } from '@react-navigation/native';
+import { createChat, getChatById, subscribeToMessages } from '../services/chatService';
 
 const Messages = () => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -12,28 +13,17 @@ const Messages = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribe = firestore.collection('Usuario')
-      .doc(currentUserId) // Assuming you store chats in the user document
+    const unsubscribe = firestore.collection('chats')
+      .where('participants', 'array-contains', currentUserId)
       .onSnapshot((snapshot) => {
-        const chatsData = snapshot.data()?.chats || []; // Initialize as empty array if undefined
-        if (chatsData) {
-          // Fetch chat data for each chat ID
-          const promises = chatsData.map(async (chatId: string) => {
-            const chatDoc = await firestore.collection('chats').doc(chatId).get();
-            if (chatDoc.exists) {
-              return new Chat({ id: chatDoc.id, ...chatDoc.data() });
-            }
-          });
-
-          Promise.all(promises).then(chats => setChats(chats.filter(chat => chat !== undefined)));
-        }
+        const chatsData = snapshot.docs.map(doc => new Chat({ id: doc.id, ...doc.data() }));
+        setChats(chatsData);
       });
     return () => unsubscribe();
   }, [currentUserId]);
 
   const handleChatPress = (chatId: string) => {
-    // Navigate to the individual chat screen
-    navigation.navigate('ChatScreen', { chatId }); // Assuming you have a ChatDetails screen
+    navigation.navigate('ChatScreen', { chatId });
   };
 
   return (

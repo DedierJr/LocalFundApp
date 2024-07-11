@@ -23,14 +23,6 @@ export default function App() {
   );
 }
 
-auth.onAuthStateChanged(user => {
-  if (user) {
-    console.log("Usuário logado:", user);
-  } else {
-    console.log("Nenhum usuário logado");
-  }
-});
-
 firestore.collection("Usuario").get()
   .then(snapshot => {
     console.log("Conectado ao Firestore:", snapshot.size, "documentos encontrados");

@@ -1,25 +1,37 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/ChatScreen.tsx
+// /LocalFundApp/screens/ChatScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, Button } from 'react-native';
 import { firestore, auth } from '../firebase';
 import { Message } from '../model/Message'; // Make sure you have a Message model
+import { createChat } from '../services/chatService';
 
-const ChatScreen = ({ route }: any) => {
-  const { chatId } = route.params;
-  const [messages, setMessages] = useState<Message[]>([]); // Use Message[] type
+const ChatScreen = ({ route, navigation }: any) => {
+  const { chatId, otherUserId } = route.params; // Get other user ID
+  const [messages, setMessages] = useState<Message[]>([]); 
   const [newMessage, setNewMessage] = useState('');
   const currentUserId = auth.currentUser?.uid;
 
+  // Create a new chat if one doesn't exist
+  useEffect(() => {
+    if (!chatId) {
+      // Create a new chat with the current user and the other user
+      createChat([currentUserId, otherUserId]).then((newChatId) => {
+        navigation.setParams({ chatId: newChatId }); // Update chatId in params
+      });
+    }
+  }, [chatId, otherUserId, currentUserId, navigation]);
+
+  // Fetch messages from the chat
   useEffect(() => {
     const unsubscribe = firestore.collection('chats')
       .doc(chatId)
       .collection('messages')
-      .orderBy('createdAt', 'asc') // Or orderBy('timestamp', 'asc') if you use timestamp
+      .orderBy('createdAt', 'asc')
       .onSnapshot((querySnapshot) => {
         const messages = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data()
-        })) as Message[]; // Cast to Message[]
+        })) as Message[];
         setMessages(messages);
       });
 
@@ -38,7 +50,7 @@ const ChatScreen = ({ route }: any) => {
         .add({
           text: newMessage,
           senderId: currentUserId,
-          createdAt: new Date().toISOString() // Or use timestamp
+          createdAt: new Date().toISOString() 
         });
       setNewMessage('');
     } catch (error) {
