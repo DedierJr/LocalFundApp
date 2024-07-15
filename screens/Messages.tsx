@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { firestore, auth } from '../firebase';
 import { Chat } from '../model/Chat';
+import { Usuario } from '../model/Usuario';
 import { useNavigation } from '@react-navigation/native';
 
 const Messages = () => {
   const [chats, setChats] = useState<Chat[]>([]);
+  const [userDetails, setUserDetails] = useState<{ [key: string]: { nickname: string, fotoPerfil: string } }>({});
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -40,17 +42,43 @@ const Messages = () => {
       }
     };
 
+    const fetchUserDetails = async () => {
+      try {
+        const usersSnapshot = await firestore.collection('Usuario').get();
+        const usersData: { [key: string]: { nickname: string, fotoPerfil: string } } = {};
+        usersSnapshot.forEach(doc => {
+          const user = new Usuario(doc.data());
+          usersData[doc.id] = { nickname: user.nickname, fotoPerfil: user.fotoPerfil };
+        });
+        setUserDetails(usersData);
+      } catch (error) {
+        console.error('Erro ao buscar detalhes dos usuários:', error);
+      }
+    };
+
     fetchChats();
+    fetchUserDetails();
   }, []);
 
-  const renderItem = ({ item }: { item: Chat }) => (
-    <TouchableOpacity
-      style={styles.chatItem}
-      onPress={() => navigation.navigate('Chat', { chatId: item.id })}
-    >
-      <Text style={styles.chatItemText}>Chat com {item.participants.join(', ')}</Text>
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item }: { item: Chat }) => {
+    const currentUserId = auth.currentUser?.uid;
+    const otherParticipantId = item.participants.find(participantId => participantId !== currentUserId);
+    const otherParticipantDetails = otherParticipantId ? userDetails[otherParticipantId] : { nickname: 'Desconhecido', fotoPerfil: '' };
+
+    return (
+      <TouchableOpacity
+        style={styles.chatItem}
+        onPress={() => navigation.navigate('Chat', { chatId: item.id })}
+      >
+        <Image
+          source={{ uri: otherParticipantDetails.fotoPerfil }}
+          style={styles.profileImage}
+          resizeMode="cover"
+        />
+        <Text style={styles.chatItemText}>{otherParticipantDetails.nickname}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -69,9 +97,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   chatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 15,
   },
   chatItemText: {
     fontSize: 18,
