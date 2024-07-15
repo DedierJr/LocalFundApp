@@ -1,41 +1,63 @@
-// /LocalFundApp/screens/Messages.tsx
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { firestore, auth } from '../firebase';
 import { Chat } from '../model/Chat';
-import { ChatItem } from '../components/ChatItem';
 import { useNavigation } from '@react-navigation/native';
-import { createChat, getChatById, subscribeToMessages } from '../services/chatService';
 
 const Messages = () => {
   const [chats, setChats] = useState<Chat[]>([]);
-  const currentUserId = auth.currentUser?.uid;
   const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribe = firestore.collection('chats')
-      .where('participants', 'array-contains', currentUserId)
-      .onSnapshot((snapshot) => {
-        const chatsData = snapshot.docs.map(doc => new Chat({ id: doc.id, ...doc.data() }));
-        setChats(chatsData);
-      });
-    return () => unsubscribe();
-  }, [currentUserId]);
+    const fetchChats = async () => {
+      const currentUserId = auth.currentUser?.uid;
 
-  const handleChatPress = (chatId: string) => {
-    navigation.navigate('ChatScreen', { chatId });
-  };
+      if (!currentUserId) {
+        console.error('ID de usuário inválido.');
+        return;
+      }
+
+      try {
+        const userRef = firestore.collection('Usuario').doc(currentUserId);
+        const userDoc = await userRef.get();
+
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          if (userData && userData.chats) {
+            const chatsPromises = userData.chats.map(async (chatId: string) => {
+              const chatRef = firestore.collection('chats').doc(chatId);
+              const chatDoc = await chatRef.get();
+              return new Chat({ id: chatDoc.id, ...chatDoc.data() });
+            });
+            const chatsData = await Promise.all(chatsPromises);
+            setChats(chatsData);
+          }
+        } else {
+          console.log('Usuário não encontrado');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar chats:', error);
+      }
+    };
+
+    fetchChats();
+  }, []);
+
+  const renderItem = ({ item }: { item: Chat }) => (
+    <TouchableOpacity
+      style={styles.chatItem}
+      onPress={() => navigation.navigate('Chat', { chatId: item.id })}
+    >
+      <Text style={styles.chatItemText}>Chat com {item.participants.join(', ')}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
       <FlatList
         data={chats}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handleChatPress(item.id)}>
-            <ChatItem chat={item} currentUserId={currentUserId} />
-          </TouchableOpacity>
-        )}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
       />
     </View>
   );
@@ -44,7 +66,15 @@ const Messages = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    backgroundColor: '#fff',
+  },
+  chatItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  chatItemText: {
+    fontSize: 18,
   },
 });
 

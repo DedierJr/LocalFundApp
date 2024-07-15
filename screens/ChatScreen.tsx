@@ -2,26 +2,23 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, Button } from 'react-native';
 import { firestore, auth } from '../firebase';
-import { Message } from '../model/Message'; // Make sure you have a Message model
+import { Message } from '../model/Message';
 import { createChat } from '../services/chatService';
 
 const ChatScreen = ({ route, navigation }: any) => {
-  const { chatId, otherUserId } = route.params; // Get other user ID
-  const [messages, setMessages] = useState<Message[]>([]); 
+  const { chatId, otherUserId } = route.params;
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const currentUserId = auth.currentUser?.uid;
 
-  // Create a new chat if one doesn't exist
   useEffect(() => {
     if (!chatId) {
-      // Create a new chat with the current user and the other user
       createChat([currentUserId, otherUserId]).then((newChatId) => {
-        navigation.setParams({ chatId: newChatId }); // Update chatId in params
+        navigation.setParams({ chatId: newChatId });
       });
     }
   }, [chatId, otherUserId, currentUserId, navigation]);
 
-  // Fetch messages from the chat
   useEffect(() => {
     const unsubscribe = firestore.collection('chats')
       .doc(chatId)
@@ -50,7 +47,7 @@ const ChatScreen = ({ route, navigation }: any) => {
         .add({
           text: newMessage,
           senderId: currentUserId,
-          createdAt: new Date().toISOString() 
+          createdAt: new Date().toISOString()
         });
       setNewMessage('');
     } catch (error) {

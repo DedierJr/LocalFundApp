@@ -1,10 +1,9 @@
-// /LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button, Image, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Button, Image, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
-import { openChat, followUser, unfollowUser } from '../services/chatService'; // Import the correct function
+import { openChat, followUser, unfollowUser } from '../services/chatService';
 
 const UserProfile = ({ route, navigation }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);

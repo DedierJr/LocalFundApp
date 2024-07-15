@@ -1,11 +1,11 @@
-// /LocalFundApp/services/chatService.ts
 import { firestore, auth } from '../firebase';
+import firebase from 'firebase/compat/app';
 import { Chat } from '../model/Chat';
 import { Message } from '../model/Message';
 import { Usuario } from '../model/Usuario';
 import { sendNotification } from '../services/notificationService';
 
-export const createChat = async (participants: string[]) => {
+export const createChat = async (participants: string[]): Promise<string> => {
   const existingChat = await findChatByParticipants(participants);
   if (existingChat) {
     return existingChat.id;
@@ -15,12 +15,11 @@ export const createChat = async (participants: string[]) => {
   const chatRef = await firestore.collection('chats').add(chat.toFirestore());
   const newChatId = chatRef.id;
 
-  // Update each participant's "chats" array
+  // Atualizar o array "chats" de cada participante
   await Promise.all(participants.map(async (userId) => {
     const userRef = firestore.collection('Usuario').doc(userId);
-    // Use arrayUnion to add the new chatId to the existing array
     await userRef.update({
-      chats: firestore.FieldValue.arrayUnion(newChatId) 
+      chats: firebase.firestore.FieldValue.arrayUnion(newChatId)
     });
   }));
 
@@ -35,17 +34,12 @@ export const findChatByParticipants = async (participants: string[]): Promise<Ch
 
   const matchingChats = chatsQuery.docs.map(doc => new Chat({ id: doc.id, ...doc.data() }));
 
-  // Filtra os chats que contêm todos os participantes
   const exactMatchChats = matchingChats.filter(chat =>
     participants.every(participant => chat.participants.includes(participant)) &&
     chat.participants.length === participants.length
   );
 
-  if (exactMatchChats.length > 0) {
-    return exactMatchChats[0];
-  } else {
-    return null;
-  }
+  return exactMatchChats.length > 0 ? exactMatchChats[0] : null;
 };
 
 export const sendMessage = async (chatId: string, senderId: string, content: string) => {
@@ -75,7 +69,6 @@ export const openChat = async (userId: string, navigation: any) => {
     if (existingChat) {
       navigation.navigate('Chat', { chatId: existingChat.id, userId: currentUserId });
     } else {
-      // Create a new chat only if it doesn't exist
       const newChatId = await createChat([userId, currentUserId]);
       if (newChatId) {
         navigation.navigate('Chat', { chatId: newChatId, userId: currentUserId });
@@ -98,14 +91,14 @@ export const followUser = async (userId: string, user: Usuario, navigation: any)
 
   try {
     await firestore.collection('Usuario').doc(userId).update({
-      followers: [...user.followers, currentUserId]
+      followers: firestore.FieldValue.arrayUnion(currentUserId)
     });
     await firestore.collection('Usuario').doc(currentUserId).update({
-      following: [...user.following, userId]
+      following: firestore.FieldValue.arrayUnion(userId)
     });
-    
+
     sendNotification(userId, `começou a te seguir!`, 'followed');
-    Alert.alert('Successo', 'Você agora está seguindo este usuário.');
+    Alert.alert('Sucesso', 'Você agora está seguindo este usuário.');
   } catch (error) {
     console.error('Erro ao seguir usuário:', error);
   }
@@ -121,12 +114,12 @@ export const unfollowUser = async (userId: string, user: Usuario, navigation: an
 
   try {
     await firestore.collection('Usuario').doc(userId).update({
-      followers: user.followers.filter(followerId => followerId !== currentUserId)
+      followers: firestore.FieldValue.arrayRemove(currentUserId)
     });
     await firestore.collection('Usuario').doc(currentUserId).update({
-      following: user.following.filter(followingId => followingId !== userId)
+      following: firestore.FieldValue.arrayRemove(userId)
     });
-    Alert.alert('Successo', 'Você deixou de seguir este usuário.');
+    Alert.alert('Sucesso', 'Você deixou de seguir este usuário.');
   } catch (error) {
     console.error('Erro ao deixar de seguir usuário:', error);
   }

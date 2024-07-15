@@ -1,8 +1,9 @@
+// /DedierJr/LocalFundApp/firebase.js
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/firestore";
-import 'firebase/compat/storage'; 
-import { GeoFirestore } from "geofirestore"; // Importando geofirestore
+import "firebase/compat/storage";
+import { GeoFirestore } from "geofirestore"; 
 
 // Your web app's Firebase configuration
 
@@ -25,14 +26,14 @@ const firebaseConfig = {
 
 let app;
 if (firebase.apps.length === 0) {
-  app = firebase.initializeApp(firebaseConfig);
+    app = firebase.initializeApp(firebaseConfig); // Initialize only once
 } else {
-  app = firebase.app();
+    app = firebase.app();
 }
 
 const auth = firebase.auth();
-const firestore = firebase.firestore();
+const firestore = firebase.app().firestore(); // Access firestore through the initialized app
 const storage = firebase.storage();
-const geoFirestore = new GeoFirestore(firestore); // Inicializando geofirestore
+const geoFirestore = new GeoFirestore(firestore); 
 
 export { auth, firestore, storage, geoFirestore };
