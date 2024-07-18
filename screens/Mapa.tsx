@@ -9,9 +9,7 @@ import PostModel from '../model/Post';
 import DetalhesPost from './DetalhesPost';
 import { findPostsNearLocation, createPost } from '../services/postService';
 import firebase from 'firebase/compat/app';
-import AddPostBtn from '../components/AddPostBtn';
-import PostBubble from '../components/PostBubble'; // Importando o novo componente
-
+import PostBubble from '../components/PostBubble';
 const Mapa = () => {
   const [formPost, setFormPost] = useState<Partial<PostModel>>({});
   const [posts, setPosts] = useState<PostModel[]>([]);
@@ -44,7 +42,11 @@ const Mapa = () => {
       .onSnapshot((snapshot) => {
         const newPosts: PostModel[] = [];
         snapshot.forEach((doc) => {
-          newPosts.push({ id: doc.id, ...doc.data() } as PostModel);
+          newPosts.push({
+            id: doc.id,
+            createdAt: doc.data().createdAt.toDate(),
+            ...doc.data() 
+          } as PostModel);
         });
         setPosts(newPosts);
       });
@@ -88,7 +90,7 @@ const Mapa = () => {
         id: '',
         userId,
         ...formPost,
-        createdAt: new Date(),
+        createdAt: new Date(), // Definindo createdAt como um objeto Date
         userProfilePicture: userData?.profilePictureURL || '',
         username: userData?.username || '',
         nickname: userData?.nickname || '',
@@ -160,14 +162,12 @@ const Mapa = () => {
               setMostrarFormulario(true);
             }}
           >
-            {/* Removendo os Marker's completamente */}
             {posts.map((post, index) => (
               post.location ? (
                 <PostBubble key={`${post.id}-${index}`} post={post} /> // Usando o novo componente
               ) : null
             ))}
           </MapView>
-          <AddPostBtn onPress={() => setMostrarFormulario(true)} />
         </>
       )}
     </View>

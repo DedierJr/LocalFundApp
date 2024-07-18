@@ -1,3 +1,4 @@
+// /LocalFundApp/screens/DetalhesPost.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, Button, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -8,7 +9,7 @@ import { firestore, auth } from '../firebase';
 import Usuario from '../model/Usuario';
 
 interface DetalhesPostProps {
-  post: PostModel | undefined; 
+  post: PostModel; // Mudando o tipo para PostModel
   onVoltar: () => void;
 }
 
@@ -46,16 +47,6 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ post, onVoltar }) => {
     fetchCommentAuthors();
   }, [post, currentUser]);
 
-  if (!post) {
-    return (
-      <View style={styles.container}>
-        <TouchableOpacity onPress={onVoltar} style={styles.button}>
-          <Text style={styles.buttonText}>Voltar</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   const irParaPerfil = () => {
     navigation.navigate('UserProfile', { userId: post.userId });
   };
@@ -67,118 +58,86 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ post, onVoltar }) => {
 
   const handleSaveEdit = async () => {
     const updatedPost = new PostModel({ ...post, content: editedContent });
-    const success = await updatePost(updatedPost);
-    if (success) {
-      setIsEditing(false);
-      Alert.alert('Sucesso', 'Post atualizado com sucesso!');
-    } else {
-      Alert.alert('Erro', 'Erro ao atualizar post.');
-    }
-  };
-
-  const handleCancelEdit = () => {
+    await updatePost(updatedPost);
     setIsEditing(false);
   };
 
-  const handleLike = async () => {
-    if (currentUser) {
-      const success = await likePost(post.id, currentUser.uid);
-      if (success) {
-        setIsLiked(true);
-      } else {
-        Alert.alert('Erro', 'Erro ao curtir post.');
-      }
+  const handleLikePress = async () => {
+    if (isLiked) {
+      await unlikePost(post.id);
+    } else {
+      await likePost(post.id);
     }
-  };
-
-  const handleUnlike = async () => {
-    if (currentUser) {
-      const success = await unlikePost(post.id, currentUser.uid);
-      if (success) {
-        setIsLiked(false);
-      } else {
-        Alert.alert('Erro', 'Erro ao remover curtida.');
-      }
-    }
+    setIsLiked(!isLiked);
   };
 
   const handleAddComment = async () => {
-    if (currentUser && newComment.trim() !== '') {
-      const success = await addComment(post.id, currentUser.uid, newComment);
-      if (success) {
-        setNewComment('');
-        Alert.alert('Sucesso', 'Comentário adicionado!');
-      } else {
-        Alert.alert('Erro', 'Erro ao adicionar comentário.');
-      }
+    if (newComment.trim()) {
+      await addComment(post.id, newComment);
+      setNewComment('');
+    } else {
+      Alert.alert('Erro', 'O comentário não pode estar vazio.');
     }
   };
 
   return (
     <View style={styles.container}>
-      {post.userProfilePicture && (
-        <Image source={{ uri: post.userProfilePicture }} style={styles.profilePicture} />
-      )}
-      <TouchableOpacity onPress={irParaPerfil}>
-        <Text style={styles.username}>{post.username}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={irParaPerfil}>
-        <Text style={styles.nickname}>@{post.nickname}</Text>
-      </TouchableOpacity>
-      {isEditing ? (
-        <>
-          <TextInput
-            style={styles.textInput}
-            value={editedContent}
-            onChangeText={setEditedContent}
-          />
+      <View style={styles.postContainer}>
+        <Text style={styles.postContent}>
+          {isEditing ? (
+            <TextInput
+              style={styles.editInput}
+              value={editedContent}
+              onChangeText={setEditedContent}
+              multiline
+            />
+          ) : (
+            post.content
+          )}
+        </Text>
+        {isEditing ? (
           <TouchableOpacity onPress={handleSaveEdit} style={styles.button}>
             <Text style={styles.buttonText}>Salvar</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleCancelEdit} style={styles.button}>
-            <Text style={styles.buttonText}>Cancelar</Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          <Text style={styles.content}>{post.content}</Text>
+        ) : (
           <TouchableOpacity onPress={handleEditPress} style={styles.button}>
             <Text style={styles.buttonText}>Editar</Text>
           </TouchableOpacity>
-        </>
-      )}
-      {post.location && (
-        <Text style={styles.coordinates}>
-          Coordenadas: ({post.location.latitude}, {post.location.longitude})
-        </Text>
-      )}
-      <View style={styles.likeCommentContainer}>
-        <TouchableOpacity onPress={isLiked ? handleUnlike : handleLike} style={styles.likeButton}>
+        )}
+        <TouchableOpacity onPress={irParaPerfil} style={styles.profileContainer}>
+          <Image source={{ uri: post.userProfilePicture }} style={styles.profilePicture} />
+          <Text style={styles.username}>{post.username || post.nickname}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleLikePress} style={styles.likeButton}>
           <Text style={styles.likeButtonText}>{isLiked ? 'Descurtir' : 'Curtir'}</Text>
         </TouchableOpacity>
-        <View style={styles.commentInputContainer}>
-          <TextInput
-            style={styles.commentInput}
-            placeholder="Adicionar comentário..."
-            value={newComment}
-            onChangeText={setNewComment}
-          />
-          <Button title="Comentar" onPress={handleAddComment} />
-        </View>
+        <Text style={styles.createdAt}>Criado em: {new Date(post.createdAt).toLocaleDateString()}</Text> {/* Exibindo a data em formato legível */}
       </View>
-      {post.comments?.length > 0 && (
-        <View style={styles.commentsContainer}>
-          <Text style={styles.commentsTitle}>Comentários:</Text>
-          {post.comments.map((comment, index) => (
+      <View style={styles.commentsContainer}>
+        {post.comments?.map((comment, index) => {
+          const author = commentAuthors[comment.userId];
+          return (
             <View key={index} style={styles.comment}>
-              <Text style={styles.commentAuthor}>
-                {commentAuthors[comment.userId]?.nickname || comment.userId}
-              </Text>
-              <Text style={styles.commentText}>{comment.comment}</Text>
+              {author && (
+                <View style={styles.commentAuthorContainer}>
+                  <Image source={{ uri: author.profilePicture }} style={styles.commentAuthorPicture} />
+                  <Text style={styles.commentAuthorName}>{author.username || author.nickname}</Text>
+                </View>
+              )}
+              <Text style={styles.commentContent}>{comment.content}</Text>
             </View>
-          ))}
-        </View>
-      )}
+          );
+        })}
+        <TextInput
+          placeholder="Adicionar comentário"
+          value={newComment}
+          onChangeText={setNewComment}
+          style={styles.commentInput}
+        />
+        <TouchableOpacity onPress={handleAddComment} style={styles.button}>
+          <Text style={styles.buttonText}>Comentar</Text>
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity onPress={onVoltar} style={styles.button}>
         <Text style={styles.buttonText}>Voltar</Text>
       </TouchableOpacity>
@@ -190,94 +149,85 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
   },
-  profilePicture: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  postContainer: {
+    marginBottom: 16,
+  },
+  postContent: {
+    fontSize: 16,
     marginBottom: 8,
   },
-  username: {
-    color: 'black',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  nickname: {
-    fontSize: 16,
-    color: 'gray',
+  editInput: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    padding: 8,
     marginBottom: 8,
-  },
-  content: {
-    fontSize: 16,
-  },
-  coordinates: {
-    fontSize: 14,
-    color: 'gray',
-    marginTop: 8,
   },
   button: {
-    marginTop: 16,
+    backgroundColor: '#007bff',
     padding: 12,
-    backgroundColor: '#2196F3',
-    borderRadius: 8,
+    marginVertical: 8,
+    borderRadius: 4,
     alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
   },
-  textInput: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 10,
-    marginBottom: 10,
-  },
-  likeCommentContainer: {
+  profileContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 16,
+  },
+  profilePicture: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  username: {
+    fontSize: 16,
   },
   likeButton: {
-    padding: 8,
-    backgroundColor: '#2196F3',
-    borderRadius: 8,
+    marginTop: 8,
   },
   likeButtonText: {
-    color: 'white',
-    fontSize: 14,
-  },
-  commentInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  commentInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 10,
-    marginRight: 8,
+    color: '#007bff',
+    fontSize: 16,
   },
   commentsContainer: {
     marginTop: 16,
   },
-  commentsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
   comment: {
+    marginBottom: 16,
+  },
+  commentAuthorContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 4,
   },
-  commentAuthor: {
-    fontWeight: 'bold',
+  commentAuthorPicture: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     marginRight: 8,
   },
-  commentText: {
+  commentAuthorName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  commentContent: {
     fontSize: 14,
   },
+  commentInput: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    padding: 8,
+    marginBottom: 8,
+  },
+  createdAt: {
+    fontSize: 12,
+    color: '#888'
+  }
 });
 
 export default DetalhesPost;
