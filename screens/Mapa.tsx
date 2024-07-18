@@ -9,7 +9,9 @@ import PostModel from '../model/Post';
 import DetalhesPost from './DetalhesPost';
 import { findPostsNearLocation, createPost } from '../services/postService';
 import firebase from 'firebase/compat/app';
-import PostBubble from '../components/PostBubble';
+import AddPostBtn from '../components/AddPostBtn';
+import PostBubble from '../components/PostBubble'; // Importando o novo componente
+
 const Mapa = () => {
   const [formPost, setFormPost] = useState<Partial<PostModel>>({});
   const [posts, setPosts] = useState<PostModel[]>([]);
@@ -42,9 +44,10 @@ const Mapa = () => {
       .onSnapshot((snapshot) => {
         const newPosts: PostModel[] = [];
         snapshot.forEach((doc) => {
+          // Corrigindo a conversão do timestamp para Date
           newPosts.push({
             id: doc.id,
-            createdAt: doc.data().createdAt.toDate(),
+            createdAt: doc.data().createdAt.toDate(), // Convertendo o timestamp para Date
             ...doc.data() 
           } as PostModel);
         });
@@ -78,22 +81,12 @@ const Mapa = () => {
         return;
       }
 
-      const userDoc = await firestore.collection('Usuario').doc(userId).get();
-      const userData = userDoc.data();
-
-      if (!userData) {
-        Alert.alert('Erro', 'Usuário não encontrado.');
-        return;
-      }
-
+      // Corrigindo o createdAt:
       const post = new PostModel({
         id: '',
-        userId,
+        userId, // Mantendo userId como a única informação do usuário
         ...formPost,
         createdAt: new Date(), // Definindo createdAt como um objeto Date
-        userProfilePicture: userData?.profilePictureURL || '',
-        username: userData?.username || '',
-        nickname: userData?.nickname || '',
         location: formPost.location 
       });
 
@@ -168,6 +161,7 @@ const Mapa = () => {
               ) : null
             ))}
           </MapView>
+          <AddPostBtn onPress={() => setMostrarFormulario(true)} />
         </>
       )}
     </View>

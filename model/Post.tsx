@@ -8,13 +8,10 @@ interface Comment {
 
 interface Post {
   id?: string;
-  userId: string;
+  userId: string; // Mantendo userId como a única informação do usuário
   content: string;
   createdAt: Date;
   location?: firebase.firestore.GeoPoint; // Only GeoPoint for location
-  userProfilePicture?: string;
-  username?: string;
-  nickname?: string;
   likes?: string[];
   comments?: Comment[];
 }
@@ -25,9 +22,6 @@ class PostModel implements Post {
   content: string;
   createdAt: Date;
   location?: firebase.firestore.GeoPoint;
-  userProfilePicture?: string;
-  username?: string;
-  nickname?: string;
   likes?: string[];
   comments?: Comment[];
 
@@ -37,9 +31,6 @@ class PostModel implements Post {
     this.content = data.content ?? '';
     this.createdAt = data.createdAt ?? new Date();
     this.location = data.location;
-    this.userProfilePicture = data.userProfilePicture;
-    this.username = data.username;
-    this.nickname = data.nickname;
     this.likes = data.likes ?? [];
     this.comments = data.comments ?? [];
   }
@@ -50,9 +41,6 @@ class PostModel implements Post {
       content: this.content,
       createdAt: this.createdAt,
       location: this.location, // Only include GeoPoint
-      userProfilePicture: this.userProfilePicture,
-      username: this.username,
-      nickname: this.nickname,
       likes: this.likes,
       comments: this.comments,
     };
@@ -66,9 +54,6 @@ class PostModel implements Post {
       content: data?.content ?? '',
       createdAt: data?.createdAt?.toDate() ?? new Date(),
       location: data?.location,  // Get GeoPoint from Firestore data
-      userProfilePicture: data?.userProfilePicture,
-      username: data?.username,
-      nickname: data?.nickname,
       likes: data?.likes ?? [],
       comments: data?.comments ?? [],
     });

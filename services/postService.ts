@@ -1,144 +1,66 @@
 // /LocalFundApp/services/postService.ts
-import { firestore } from '../firebase';
+import { firestore, geoFirestore } from "../firebase";
+import PostModel from "../model/Post";
 import firebase from 'firebase/compat/app';
-import PostModel from '../model/Post';
+
+export const findPostsNearLocation = async (
+  latitude: number,
+  longitude: number,
+  radius: number
+) => {
+  const center = new firebase.firestore.GeoPoint(latitude, longitude);
+
+  // Obtendo posts dentro do raio usando geofirestore
+  const posts = await geoFirestore
+    .collection("posts")
+    .near(center, radius)
+    .get()
+    .then((querySnapshot) => {
+      const posts: PostModel[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        // console.log('Dados do post:', data);
+        posts.push({ id: doc.id, ...data } as PostModel);
+      });
+      return posts;
+    });
+  return posts;
+};
 
 export const createPost = async (post: PostModel) => {
-  const postRef = await firestore.collection('posts').add(post.toFirestore());
-  const newPostId = postRef.id;
-
-  // Update the post object with the new ID
-  const newPost = new PostModel({ ...post, id: newPostId });
-
-  // Update user's "posts" array (assuming users have a "posts" field)
-  await firestore.collection('Usuario').doc(post.userId).update({
-    posts: firebase.firestore.FieldValue.arrayUnion(newPostId)
-  });
-
-  return newPost;
-};
-
-export const findPostById = async (postId: string): Promise<PostModel | null> => {
-  const postRef = firestore.collection('posts').doc(postId);
-  const postDoc = await postRef.get();
-
-  if (postDoc.exists) {
-    return PostModel.fromFirestore(postDoc);
-  } else {
-    return null;
-  }
-};
-
-export const findPostsByUserId = async (userId: string): Promise<PostModel[]> => {
-  const postsQuery = firestore.collection('posts').where('userId', '==', userId);
-  const postsSnapshot = await postsQuery.get();
-
-  return postsSnapshot.docs.map(doc => PostModel.fromFirestore(doc));
-};
-
-// Find posts within a specified radius from a given location
-export const findPostsNearLocation = async (lat: number, long: number, radius: number): Promise<PostModel[]> => {
-  const geopoint = new firebase.firestore.GeoPoint(lat, long);
-
-  // Use geohash-based query for efficient distance filtering
-  const postsQuery = firestore.collection('posts')
-    .where('location', '<', new firebase.firestore.GeoPoint(lat + radius / 111, long + radius / 111))
-    .where('location', '>', new firebase.firestore.GeoPoint(lat - radius / 111, long - radius / 111));
-
-  const postsSnapshot = await postsQuery.get();
-  return postsSnapshot.docs.map(doc => PostModel.fromFirestore(doc));
-};
-
-export const subscribeToPosts = (userId: string, callback: (posts: PostModel[]) => void) => {
-  return firestore.collection('posts').where('userId', '==', userId)
-    .orderBy('createdAt', 'desc')
-    .onSnapshot(snapshot => {
-      const posts = snapshot.docs.map(doc => PostModel.fromFirestore(doc));
-      callback(posts);
-    });
+  await firestore.collection('posts').doc().set(post.toFirestore());
 };
 
 export const updatePost = async (post: PostModel) => {
-  try {
-    await firestore.collection('posts').doc(post.id).update(post.toFirestore());
-    return true;
-  } catch (error) {
-    console.error('Erro ao atualizar post:', error);
-    return false;
-  }
+  await firestore.collection('posts').doc(post.id).update(post.toFirestore());
 };
 
-export const deletePost = async (postId: string) => {
-  try {
-    await firestore.collection('posts').doc(postId).delete();
-    return true;
-  } catch (error) {
-    console.error('Erro ao deletar post:', error);
-    return false;
+export const likePost = async (postId: string) => {
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    return; // Usuário não está logado
   }
+  await firestore.collection('posts').doc(postId).update({
+    likes: firebase.firestore.FieldValue.arrayUnion(userId)
+  });
 };
 
-export const likePost = async (postId: string, userId: string) => {
-  try {
-    const postRef = firestore.collection('posts').doc(postId);
-    const postDoc = await postRef.get();
-
-    if (postDoc.exists) {
-      const post = postDoc.data() as PostModel;
-      if (post.likes && !post.likes.includes(userId)) {
-        await postRef.update({
-          likes: firebase.firestore.FieldValue.arrayUnion(userId)
-        });
-        return true;
-      } else {
-        console.error('Post já curtido ou não encontrado.');
-        return false;
-      }
-    } else {
-      console.error('Post não encontrado.');
-      return false;
-    }
-  } catch (error) {
-    console.error('Erro ao curtir post:', error);
-    return false;
+export const unlikePost = async (postId: string) => {
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    return; // Usuário não está logado
   }
+  await firestore.collection('posts').doc(postId).update({
+    likes: firebase.firestore.FieldValue.arrayRemove(userId)
+  });
 };
 
-export const unlikePost = async (postId: string, userId: string) => {
-  try {
-    const postRef = firestore.collection('posts').doc(postId);
-    const postDoc = await postRef.get();
-
-    if (postDoc.exists) {
-      const post = postDoc.data() as PostModel;
-      if (post.likes && post.likes.includes(userId)) {
-        await postRef.update({
-          likes: firebase.firestore.FieldValue.arrayRemove(userId)
-        });
-        return true;
-      } else {
-        console.error('Post não curtido ou não encontrado.');
-        return false;
-      }
-    } else {
-      console.error('Post não encontrado.');
-      return false;
-    }
-  } catch (error) {
-    console.error('Erro ao remover curtida do post:', error);
-    return false;
+export const addComment = async (postId: string, comment: string) => {
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    return; // Usuário não está logado
   }
-};
-
-export const addComment = async (postId: string, userId: string, comment: string) => {
-  try {
-    const postRef = firestore.collection('posts').doc(postId);
-    await postRef.update({
-      comments: firebase.firestore.FieldValue.arrayUnion({ userId, comment })
-    });
-    return true;
-  } catch (error) {
-    console.error('Erro ao adicionar comentário:', error);
-    return false;
-  }
+  await firestore.collection('posts').doc(postId).update({
+    comments: firebase.firestore.FieldValue.arrayUnion({ userId, comment })
+  });
 };

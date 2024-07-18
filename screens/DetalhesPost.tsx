@@ -23,28 +23,31 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ post, onVoltar }) => {
   const [commentAuthors, setCommentAuthors] = useState<{ [userId: string]: Usuario }>({});
 
   useEffect(() => {
-    const checkLikeStatus = async () => {
-      if (currentUser && post?.likes) {
-        setIsLiked(post.likes.includes(currentUser.uid));
-      }
-    };
-
-    const fetchCommentAuthors = async () => {
-      if (post?.comments) {
-        const userIds = new Set(post.comments.map(comment => comment.userId));
-        const fetchedUsers: { [userId: string]: Usuario } = {};
-        for (const userId of userIds) {
-          const user = await getUserById(userId);
-          if (user) {
-            fetchedUsers[userId] = user;
-          }
+    // Verificando se o post foi recebido
+    if (post) {
+      const checkLikeStatus = async () => {
+        if (currentUser && post?.likes) {
+          setIsLiked(post.likes.includes(currentUser.uid));
         }
-        setCommentAuthors(fetchedUsers);
-      }
-    };
+      };
 
-    checkLikeStatus();
-    fetchCommentAuthors();
+      const fetchCommentAuthors = async () => {
+        if (post?.comments) {
+          const userIds = new Set(post.comments.map(comment => comment.userId));
+          const fetchedUsers: { [userId: string]: Usuario } = {};
+          for (const userId of userIds) {
+            const user = await getUserById(userId);
+            if (user) {
+              fetchedUsers[userId] = user;
+            }
+          }
+          setCommentAuthors(fetchedUsers);
+        }
+      };
+
+      checkLikeStatus();
+      fetchCommentAuthors();
+    }
   }, [post, currentUser]);
 
   const irParaPerfil = () => {
@@ -83,18 +86,21 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ post, onVoltar }) => {
   return (
     <View style={styles.container}>
       <View style={styles.postContainer}>
-        <Text style={styles.postContent}>
-          {isEditing ? (
-            <TextInput
-              style={styles.editInput}
-              value={editedContent}
-              onChangeText={setEditedContent}
-              multiline
-            />
-          ) : (
-            post.content
-          )}
-        </Text>
+        {/* Usando o post.content dentro do useEffect */}
+        {post && ( // Usando o operador && para verificar se post é definido
+          <Text style={styles.postContent}>
+            {isEditing ? (
+              <TextInput
+                style={styles.editInput}
+                value={editedContent}
+                onChangeText={setEditedContent}
+                multiline
+              />
+            ) : (
+              post.content
+            )}
+          </Text>
+        )}
         {isEditing ? (
           <TouchableOpacity onPress={handleSaveEdit} style={styles.button}>
             <Text style={styles.buttonText}>Salvar</Text>
@@ -111,7 +117,7 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ post, onVoltar }) => {
         <TouchableOpacity onPress={handleLikePress} style={styles.likeButton}>
           <Text style={styles.likeButtonText}>{isLiked ? 'Descurtir' : 'Curtir'}</Text>
         </TouchableOpacity>
-        <Text style={styles.createdAt}>Criado em: {new Date(post.createdAt).toLocaleDateString()}</Text> {/* Exibindo a data em formato legível */}
+        <Text style={styles.createdAt}>Criado em: {post.createdAt.toLocaleDateString()}</Text> {/* Exibindo a data em formato legível */}
       </View>
       <View style={styles.commentsContainer}>
         {post.comments?.map((comment, index) => {

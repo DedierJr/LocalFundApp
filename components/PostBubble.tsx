@@ -1,3 +1,4 @@
+// LocalFundApp/components/PostBubble.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Marker } from 'react-native-maps';
@@ -12,7 +13,7 @@ const PostBubble: React.FC<PostBubbleProps> = ({ post }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
-    navigation.navigate('DetalhesPost', { post: { ...post, createdAt: post.createdAt.toDate().toISOString() } });
+    navigation.navigate('DetalhesPost', { post }); // Passando o objeto post como argumento
   };
 
   return (
@@ -20,7 +21,7 @@ const PostBubble: React.FC<PostBubbleProps> = ({ post }) => {
       coordinate={{ latitude: post.location!.latitude, longitude: post.location!.longitude }}
       onPress={handlePress}
     >
-      <View style={styles.postBubble}>
+      <View style={styles.postBubble}> 
         <Text>{post.content}</Text>
       </View>
     </Marker>
