@@ -1,16 +1,16 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/Mapa.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Callout } from 'react-native-maps';
 import MeuEstilo from '../estiloMapa';
 import { useNavigation } from '@react-navigation/native';
-import { firestore, auth, geoFirestore } from '../firebase'; // Import geoFirestore
+import { firestore, auth } from '../firebase';
 import meuestilo from '../meuestilo';
-import PostModel from '../model/Post'; 
+import PostModel from '../model/Post';
 import DetalhesPost from './DetalhesPost';
 import { findPostsNearLocation, createPost } from '../services/postService';
 import firebase from 'firebase/compat/app';
 import AddPostBtn from '../components/AddPostBtn';
+import PostBubble from '../components/PostBubble'; // Importando o novo componente
 
 const Mapa = () => {
   const [formPost, setFormPost] = useState<Partial<PostModel>>({});
@@ -26,11 +26,9 @@ const Mapa = () => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const navigation = useNavigation();
 
-  // Use useRef to keep track of the listener
   const postsListener = useRef<firebase.Unsubscribe | null>(null);
 
   useEffect(() => {
-    // Load posts near the current position with a radius of 5km (adjust as needed)
     const loadPostsNearLocation = async () => {
       const postsNearLocation = await findPostsNearLocation(
         position.latitude,
@@ -40,30 +38,27 @@ const Mapa = () => {
       setPosts(postsNearLocation);
     };
 
-    // Set up the real-time listener for posts
     const unsubscribe = firestore.collection('posts')
       .where('location', '<', new firebase.firestore.GeoPoint(position.latitude + 5 / 111, position.longitude + 5 / 111))
       .where('location', '>', new firebase.firestore.GeoPoint(position.latitude - 5 / 111, position.longitude - 5 / 111))
       .onSnapshot((snapshot) => {
         const newPosts: PostModel[] = [];
         snapshot.forEach((doc) => {
-          newPosts.push({ id: doc.id, ...doc.data() } as PostModel); // Ensure type safety
+          newPosts.push({ id: doc.id, ...doc.data() } as PostModel);
         });
         setPosts(newPosts);
       });
 
-    // Store the listener in useRef
     postsListener.current = unsubscribe;
 
     loadPostsNearLocation();
 
-    // Cleanup the listener on unmount
     return () => {
       if (postsListener.current) {
         postsListener.current();
       }
     };
-  }, [position]); // Re-fetch posts when position changes
+  }, [position]);
 
   const limparFormulario = () => {
     setFormPost({
@@ -89,15 +84,15 @@ const Mapa = () => {
         return;
       }
 
-      const post = new PostModel({ // Create a PostModel instance
+      const post = new PostModel({
         id: '',
         userId,
         ...formPost,
         createdAt: new Date(),
-        userProfilePicture: userData?.profilePictureURL || '', // Default to empty string if undefined
-        username: userData?.username || '', // Default to empty string if undefined
-        nickname: userData?.nickname || '', // Default to empty string if undefined
-        location: formPost.location // Use the GeoPoint from the formPost
+        userProfilePicture: userData?.profilePictureURL || '',
+        username: userData?.username || '',
+        nickname: userData?.nickname || '',
+        location: formPost.location 
       });
 
       await createPost(post); 
@@ -109,11 +104,15 @@ const Mapa = () => {
     }
   };
 
+  const resumirConteudo = (conteudo: string, maxLength: number) => {
+    return conteudo.length > maxLength ? conteudo.substring(0, maxLength) + '...' : conteudo;
+  };
+
   return (
     <View style={MeuEstilo.container}>
       {mostrarDetalhes ? (
         <DetalhesPost
-          post={posts.find(p => p.id === postSelecionado)} // Pass the post as a prop
+          post={posts.find(p => p.id === postSelecionado)}
           onVoltar={() => setMostrarDetalhes(false)}
         />
       ) : mostrarFormulario ? (
@@ -161,20 +160,14 @@ const Mapa = () => {
               setMostrarFormulario(true);
             }}
           >
+            {/* Removendo os Marker's completamente */}
             {posts.map((post, index) => (
-              post.location ? ( 
-                <Marker
-                  key={`${post.id}-${index}`}
-                  coordinate={{ latitude: post.location.latitude, longitude: post.location.longitude }}
-                  title={post.content}
-                  onPress={() => {
-                    setPostSelecionado(post.id);
-                    setMostrarDetalhes(true);
-                  }}
-                />
+              post.location ? (
+                <PostBubble key={`${post.id}-${index}`} post={post} /> // Usando o novo componente
               ) : null
             ))}
           </MapView>
+          <AddPostBtn onPress={() => setMostrarFormulario(true)} />
         </>
       )}
     </View>
