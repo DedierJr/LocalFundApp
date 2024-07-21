@@ -80,10 +80,7 @@ const ListarPosts: React.FC = () => {
               <Text style={styles.postContent}>{item.content}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
-              <Text style={styles.postAuthorNickname}>{users[item.userId]?.nickname}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
-              <Text style={styles.postAuthorUsername}>{users[item.userId]?.username}</Text>
+              <Text style={styles.postAuthorNickname}>{users[item.userId]?.nickname || users[item.userId]?.username}</Text>
             </TouchableOpacity>
             {currentUser?.uid === item.userId && (
               <TouchableOpacity onPress={() => handleDeletePost(item.id)}>
@@ -126,13 +123,6 @@ const styles = StyleSheet.create({
   postAuthorNickname: {
     fontWeight: 'bold',
     color: 'black',
-  },
-  postAuthorUsername: {
-    fontStyle: 'italic',
-  },
-  postLocation: {
-    marginTop: 5,
-    color: '#555',
   },
   deleteButton: {
     color: 'red',

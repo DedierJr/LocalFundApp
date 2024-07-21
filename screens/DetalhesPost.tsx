@@ -1,53 +1,55 @@
-// /LocalFundApp/screens/DetalhesPost.tsx
+// LocalFundApp/screens/DetalhesPost.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, Button, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import PostModel from '../model/Post'; 
+import PostModel from '../model/Post';
 import { updatePost, likePost, unlikePost, addComment } from '../services/postService';
 import { getUserById } from '../services/userService';
-import { firestore, auth } from '../firebase';
+import { auth } from '../firebase';
 import Usuario from '../model/Usuario';
 
 interface DetalhesPostProps {
-  post: PostModel; // Mudando o tipo para PostModel
-  onVoltar: () => void;
+  route: {
+    params: {
+      post: PostModel;
+      onVoltar: () => void;
+    };
+  };
 }
 
-const DetalhesPost: React.FC<DetalhesPostProps> = ({ post, onVoltar }) => {
+const DetalhesPost: React.FC<DetalhesPostProps> = ({ route }) => {
+  const { post, onVoltar } = route.params;
   const navigation = useNavigation();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState('');
+  const [editedContent, setEditedContent] = useState(post?.content || '');
   const [newComment, setNewComment] = useState('');
   const [isLiked, setIsLiked] = useState(false);
   const currentUser = auth.currentUser;
   const [commentAuthors, setCommentAuthors] = useState<{ [userId: string]: Usuario }>({});
 
   useEffect(() => {
-    // Verificando se o post foi recebido
-    if (post) {
-      const checkLikeStatus = async () => {
-        if (currentUser && post?.likes) {
-          setIsLiked(post.likes.includes(currentUser.uid));
-        }
-      };
+    const checkLikeStatus = async () => {
+      if (currentUser && post?.likes) {
+        setIsLiked(post.likes.includes(currentUser.uid));
+      }
+    };
 
-      const fetchCommentAuthors = async () => {
-        if (post?.comments) {
-          const userIds = new Set(post.comments.map(comment => comment.userId));
-          const fetchedUsers: { [userId: string]: Usuario } = {};
-          for (const userId of userIds) {
-            const user = await getUserById(userId);
-            if (user) {
-              fetchedUsers[userId] = user;
-            }
+    const fetchCommentAuthors = async () => {
+      if (post?.comments) {
+        const userIds = new Set(post.comments.map(comment => comment.userId));
+        const fetchedUsers: { [userId: string]: Usuario } = {};
+        for (const userId of userIds) {
+          const user = await getUserById(userId);
+          if (user) {
+            fetchedUsers[userId] = user;
           }
-          setCommentAuthors(fetchedUsers);
         }
-      };
+        setCommentAuthors(fetchedUsers);
+      }
+    };
 
-      checkLikeStatus();
-      fetchCommentAuthors();
-    }
+    checkLikeStatus();
+    fetchCommentAuthors();
   }, [post, currentUser]);
 
   const irParaPerfil = () => {
@@ -83,11 +85,13 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ post, onVoltar }) => {
     }
   };
 
+  // Convertendo o timestamp para Date se necessário
+  const createdAt = post.createdAt instanceof Date ? post.createdAt : post.createdAt.toDate();
+
   return (
     <View style={styles.container}>
       <View style={styles.postContainer}>
-        {/* Usando o post.content dentro do useEffect */}
-        {post && ( // Usando o operador && para verificar se post é definido
+        {post && (
           <Text style={styles.postContent}>
             {isEditing ? (
               <TextInput
@@ -110,14 +114,16 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ post, onVoltar }) => {
             <Text style={styles.buttonText}>Editar</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity onPress={irParaPerfil} style={styles.profileContainer}>
-          <Image source={{ uri: post.userProfilePicture }} style={styles.profilePicture} />
-          <Text style={styles.username}>{post.username || post.nickname}</Text>
-        </TouchableOpacity>
+        {post.userId && commentAuthors[post.userId] && (
+          <TouchableOpacity onPress={irParaPerfil} style={styles.profileContainer}>
+            <Image source={{ uri: commentAuthors[post.userId].profilePicture }} style={styles.profilePicture} />
+            <Text style={styles.username}>{commentAuthors[post.userId].username || commentAuthors[post.userId].nickname}</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity onPress={handleLikePress} style={styles.likeButton}>
           <Text style={styles.likeButtonText}>{isLiked ? 'Descurtir' : 'Curtir'}</Text>
         </TouchableOpacity>
-        <Text style={styles.createdAt}>Criado em: {post.createdAt.toLocaleDateString()}</Text> {/* Exibindo a data em formato legível */}
+        <Text style={styles.createdAt}>Criado em: {createdAt.toLocaleDateString()}</Text>
       </View>
       <View style={styles.commentsContainer}>
         {post.comments?.map((comment, index) => {
@@ -232,8 +238,8 @@ const styles = StyleSheet.create({
   },
   createdAt: {
     fontSize: 12,
-    color: '#888'
-  }
+    color: '#888',
+  },
 });
 
 export default DetalhesPost;

@@ -1,6 +1,7 @@
+// LocalFundApp/screens/Mapa.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import MapView, { Marker, Callout } from 'react-native-maps';
+import MapView from 'react-native-maps';
 import MeuEstilo from '../estiloMapa';
 import { useNavigation } from '@react-navigation/native';
 import { firestore, auth } from '../firebase';
@@ -44,7 +45,6 @@ const Mapa = () => {
       .onSnapshot((snapshot) => {
         const newPosts: PostModel[] = [];
         snapshot.forEach((doc) => {
-          // Corrigindo a conversão do timestamp para Date
           newPosts.push({
             id: doc.id,
             createdAt: doc.data().createdAt.toDate(), // Convertendo o timestamp para Date
@@ -81,12 +81,11 @@ const Mapa = () => {
         return;
       }
 
-      // Corrigindo o createdAt:
       const post = new PostModel({
         id: '',
-        userId, // Mantendo userId como a única informação do usuário
+        userId,
         ...formPost,
-        createdAt: new Date(), // Definindo createdAt como um objeto Date
+        createdAt: new Date(),
         location: formPost.location 
       });
 
@@ -157,7 +156,16 @@ const Mapa = () => {
           >
             {posts.map((post, index) => (
               post.location ? (
-                <PostBubble key={`${post.id}-${index}`} post={post} /> // Usando o novo componente
+                <PostBubble 
+                  key={`${post.id}-${index}`} 
+                  post={post} 
+                  onPostPress={() => {
+                    navigation.navigate('DetalhesPost', { 
+                      post: { ...post, userId: post.userId || '' },
+                      onVoltar: () => setMostrarDetalhes(false) 
+                    }); 
+                  }} 
+                /> 
               ) : null
             ))}
           </MapView>

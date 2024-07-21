@@ -1,4 +1,3 @@
-// LocalFundApp/components/PostBubble.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Marker } from 'react-native-maps';
@@ -7,13 +6,25 @@ import { useNavigation } from '@react-navigation/native';
 
 interface PostBubbleProps {
   post: PostModel;
+  // Adiciona a prop onVoltar
+  onVoltar: () => void; 
 }
 
-const PostBubble: React.FC<PostBubbleProps> = ({ post }) => {
+const PostBubble: React.FC<PostBubbleProps> = ({ post, onVoltar }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
-    navigation.navigate('DetalhesPost', { post }); // Passando o objeto post como argumento
+    // Verificando se o post está definido antes de navegar
+    if (post) { 
+      // Navegando para DetalhesPost, passando o post como parâmetro
+      navigation.navigate('DetalhesPost', { 
+        post, 
+        // Passando a função onVoltar para DetalhesPost
+        onVoltar 
+      }); 
+    } else {
+      console.error('Post está indefinido');
+    }
   };
 
   return (
@@ -21,7 +32,7 @@ const PostBubble: React.FC<PostBubbleProps> = ({ post }) => {
       coordinate={{ latitude: post.location!.latitude, longitude: post.location!.longitude }}
       onPress={handlePress}
     >
-      <View style={styles.postBubble}> 
+      <View style={styles.postBubble}>
         <Text>{post.content}</Text>
       </View>
     </Marker>
@@ -30,7 +41,7 @@ const PostBubble: React.FC<PostBubbleProps> = ({ post }) => {
 
 const styles = StyleSheet.create({
   postBubble: {
-    backgroundColor: 'white', 
+    backgroundColor: 'white',
     padding: 10,
     borderRadius: 5,
     borderWidth: 1,

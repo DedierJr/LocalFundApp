@@ -23,8 +23,6 @@ const AddPost = () => {
           content,
           createdAt: new Date(),
           location, // Set the location from the state
-          userProfilePicture: currentUser.photoURL, 
-          username: currentUser.displayName,
         });
 
         const createdPost = await createPost(newPost);
