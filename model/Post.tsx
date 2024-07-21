@@ -1,4 +1,3 @@
-// /LocalFundApp/model/Post.tsx
 import firebase from 'firebase/compat/app';
 
 interface Comment {

@@ -1,3 +1,4 @@
+// LocalFundApp/components/PostBubble.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Marker } from 'react-native-maps';
@@ -6,31 +7,16 @@ import { useNavigation } from '@react-navigation/native';
 
 interface PostBubbleProps {
   post: PostModel;
-  // Adiciona a prop onVoltar
-  onVoltar: () => void; 
+  onPress: () => void; 
 }
 
-const PostBubble: React.FC<PostBubbleProps> = ({ post, onVoltar }) => {
+const PostBubble: React.FC<PostBubbleProps> = ({ post, onPress }) => {
   const navigation = useNavigation();
-
-  const handlePress = () => {
-    // Verificando se o post está definido antes de navegar
-    if (post) { 
-      // Navegando para DetalhesPost, passando o post como parâmetro
-      navigation.navigate('DetalhesPost', { 
-        post, 
-        // Passando a função onVoltar para DetalhesPost
-        onVoltar 
-      }); 
-    } else {
-      console.error('Post está indefinido');
-    }
-  };
 
   return (
     <Marker
       coordinate={{ latitude: post.location!.latitude, longitude: post.location!.longitude }}
-      onPress={handlePress}
+      onPress={onPress} 
     >
       <View style={styles.postBubble}>
         <Text>{post.content}</Text>

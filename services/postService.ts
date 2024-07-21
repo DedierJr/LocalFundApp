@@ -1,5 +1,4 @@
-// /LocalFundApp/services/postService.ts
-import { firestore, geoFirestore } from "../firebase";
+import { firestore, geoFirestore, auth } from "../firebase";
 import PostModel from "../model/Post";
 import firebase from 'firebase/compat/app';
 
@@ -27,12 +26,27 @@ export const findPostsNearLocation = async (
   return posts;
 };
 
-export const createPost = async (post: PostModel) => {
-  await firestore.collection('posts').doc().set(post.toFirestore());
+export const createPost = async (post: PostModel): Promise<void> => {
+  try {
+    // Criando um novo post com id automático
+    const postRef = firestore.collection("posts").doc();
+    await postRef.set({
+      ...post.toFirestore(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    console.error("Erro ao criar post:", error);
+    throw error; // Re-lançando o erro para que possa ser tratado no componente que chamou a função
+  }
 };
 
 export const updatePost = async (post: PostModel) => {
-  await firestore.collection('posts').doc(post.id).update(post.toFirestore());
+  try {
+    await firestore.collection('posts').doc(post.id).update(post.toFirestore());
+  } catch (error) {
+    console.error("Erro ao atualizar post:", error);
+    throw error; 
+  }
 };
 
 export const likePost = async (postId: string) => {
@@ -40,9 +54,14 @@ export const likePost = async (postId: string) => {
   if (!userId) {
     return; // Usuário não está logado
   }
-  await firestore.collection('posts').doc(postId).update({
-    likes: firebase.firestore.FieldValue.arrayUnion(userId)
-  });
+  try {
+    await firestore.collection('posts').doc(postId).update({
+      likes: firebase.firestore.FieldValue.arrayUnion(userId)
+    });
+  } catch (error) {
+    console.error("Erro ao curtir post:", error);
+    throw error; 
+  }
 };
 
 export const unlikePost = async (postId: string) => {
@@ -50,9 +69,14 @@ export const unlikePost = async (postId: string) => {
   if (!userId) {
     return; // Usuário não está logado
   }
-  await firestore.collection('posts').doc(postId).update({
-    likes: firebase.firestore.FieldValue.arrayRemove(userId)
-  });
+  try {
+    await firestore.collection('posts').doc(postId).update({
+      likes: firebase.firestore.FieldValue.arrayRemove(userId)
+    });
+  } catch (error) {
+    console.error("Erro ao descurtir post:", error);
+    throw error; 
+  }
 };
 
 export const addComment = async (postId: string, comment: string) => {
@@ -60,7 +84,21 @@ export const addComment = async (postId: string, comment: string) => {
   if (!userId) {
     return; // Usuário não está logado
   }
-  await firestore.collection('posts').doc(postId).update({
-    comments: firebase.firestore.FieldValue.arrayUnion({ userId, comment })
-  });
+  try {
+    await firestore.collection('posts').doc(postId).update({
+      comments: firebase.firestore.FieldValue.arrayUnion({ userId, comment })
+    });
+  } catch (error) {
+    console.error("Erro ao adicionar comentário:", error);
+    throw error; 
+  }
+};
+
+export const deletePost = async (postId: string) => {
+  try {
+    await firestore.collection('posts').doc(postId).delete();
+  } catch (error) {
+    console.error("Erro ao deletar post:", error);
+    throw error; 
+  }
 };
