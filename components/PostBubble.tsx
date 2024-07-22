@@ -18,7 +18,7 @@ const PostBubble: React.FC<PostBubbleProps> = ({ post, onVoltar }) => {
     if (post) { 
       // Navegando para DetalhesPost, passando o post como parâmetro
       navigation.navigate('DetalhesPost', { 
-        post, 
+        post, postId: post.id ,
         // Passando a função onVoltar para DetalhesPost
         onVoltar 
       }); 

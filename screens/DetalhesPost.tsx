@@ -79,16 +79,16 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ route }) => {
 
   const handleLikePress = async () => {
     if (isLiked) {
-      await unlikePost(postId);
+      await unlikePost(postId); // Use postId da rota
     } else {
-      await likePost(postId);
+      await likePost(postId); // Use postId da rota
     }
     setIsLiked(!isLiked);
   };
 
   const handleAddComment = async () => {
     if (newComment.trim()) {
-      await addComment(postId, newComment);
+      await addComment(postId, newComment); // Use postId da rota
       setNewComment('');
     } else {
       Alert.alert('Erro', 'O comentário não pode estar vazio.');

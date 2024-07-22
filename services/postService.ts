@@ -1,3 +1,4 @@
+// /LocalFundApp/services/postService.ts
 import { firestore, geoFirestore, auth } from "../firebase";
 import PostModel from "../model/Post";
 import firebase from 'firebase/compat/app';
@@ -55,6 +56,7 @@ export const likePost = async (postId: string) => {
     return; // Usuário não está logado
   }
   try {
+    // Adiciona o ID do usuário ao array de likes do post
     await firestore.collection('posts').doc(postId).update({
       likes: firebase.firestore.FieldValue.arrayUnion(userId)
     });
@@ -70,6 +72,7 @@ export const unlikePost = async (postId: string) => {
     return; // Usuário não está logado
   }
   try {
+    // Remove o ID do usuário do array de likes do post
     await firestore.collection('posts').doc(postId).update({
       likes: firebase.firestore.FieldValue.arrayRemove(userId)
     });
@@ -85,6 +88,7 @@ export const addComment = async (postId: string, comment: string) => {
     return; // Usuário não está logado
   }
   try {
+    // Adiciona o comentário ao array de comentários do post
     await firestore.collection('posts').doc(postId).update({
       comments: firebase.firestore.FieldValue.arrayUnion({ userId, comment })
     });
