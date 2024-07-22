@@ -55,7 +55,13 @@ const ListarPosts: React.FC = () => {
   };
 
   const navigateToPostDetails = (postId: string) => {
-    navigation.navigate('DetalhesPost', { postId });
+    const post = posts.find(item => item.id === postId); 
+    if (post) {
+      navigation.navigate('DetalhesPost', { postId, post });
+    } else {
+      // Handle the case where the post is not found
+      console.warn('Post not found:', postId);
+    }
   };
 
   const handleDeletePost = async (postId: string) => {

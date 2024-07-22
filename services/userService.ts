@@ -97,7 +97,7 @@ export const getUserById = async (userId: string) => {
     if (doc.exists) {
       const userData = doc.data();
       if (userData) {
-        return new Usuario(userData);
+        return new Usuario(userData); // Removendo a linha user.destroy()
       } else {
         console.error('Dados do usuário estão vazios.');
         return null;

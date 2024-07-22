@@ -1,4 +1,4 @@
-// LocalFundApp\screens\Mapa.tsx
+// LocalFundApp/screens/Mapa.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import MapView from 'react-native-maps';
@@ -7,27 +7,27 @@ import { useNavigation } from '@react-navigation/native';
 import { firestore, auth } from '../firebase';
 import meuestilo from '../meuestilo';
 import PostModel from '../model/Post';
+import DetalhesPost from './DetalhesPost';
 import { findPostsNearLocation, createPost } from '../services/postService';
 import firebase from 'firebase/compat/app';
 import AddPostBtn from '../components/AddPostBtn';
 import PostBubble from '../components/PostBubble'; // Importando o novo componente
 
 const Mapa = () => {
+  const [formPost, setFormPost] = useState<Partial<PostModel>>({});
+  const [posts, setPosts] = useState<PostModel[]>([]);
+  const [postSelecionado, setPostSelecionado] = useState<string | null>(null);
   const [position, setPosition] = useState({
     latitude: -31.308840,
     longitude: -54.113702,
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
-  const [posts, setPosts] = useState<PostModel[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [formPost, setFormPost] = useState<Partial<PostModel>>({
-    content: '',
-    location: undefined, 
-  });
+  const [mostrarDetalhes, setMostrarDetalhes] = useState(false);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const navigation = useNavigation();
 
   const postsListener = useRef<firebase.Unsubscribe | null>(null);
-  const navigation = useNavigation();
 
   useEffect(() => {
     const loadPostsNearLocation = async () => {
@@ -65,33 +65,15 @@ const Mapa = () => {
     };
   }, [position]);
 
-  const handleMapPress = (e: any) => {
-    setPosition({
-      latitude: e.nativeEvent.coordinate.latitude,
-      longitude: e.nativeEvent.coordinate.longitude,
-      latitudeDelta: position.latitudeDelta,
-      longitudeDelta: position.longitudeDelta,
-    });
+  const limparFormulario = () => {
     setFormPost({
-      ...formPost,
-      location: new firebase.firestore.GeoPoint(
-        e.nativeEvent.coordinate.latitude,
-        e.nativeEvent.coordinate.longitude
-      ),
+      content: '',
+      location: undefined, 
     });
-    setShowForm(true);
+    setMostrarFormulario(false);
   };
 
-  const handlePostPress = (post: PostModel) => {
-    navigation.navigate('DetalhesPost', { 
-      post: post, 
-      onVoltar: () => {
-        // Você pode adicionar lógica aqui, se necessário, para atualizar o estado do mapa ou outros componentes
-      }
-    });
-  };
-
-  const handleCreatePost = async () => {
+  const salvar = async () => {
     try {
       const userId = auth.currentUser?.uid;
       if (!userId) {
@@ -109,18 +91,26 @@ const Mapa = () => {
 
       await createPost(post); 
       Alert.alert('Sucesso', 'Post adicionado com sucesso');
-      setShowForm(false);
-      setFormPost({ content: '', location: undefined });
+      limparFormulario();
     } catch (error) {
       Alert.alert('Erro', 'Ocorreu um erro ao salvar o post.');
       console.error('Erro ao salvar o post:', error);
     }
   };
 
+  const resumirConteudo = (conteudo: string, maxLength: number) => {
+    return conteudo.length > maxLength ? conteudo.substring(0, maxLength) + '...' : conteudo;
+  };
+
   return (
     <View style={MeuEstilo.container}>
-      {showForm ? (
-        <View>
+      {mostrarDetalhes ? (
+        <DetalhesPost
+          post={posts.find(p => p.id === postSelecionado)}
+          onVoltar={() => setMostrarDetalhes(false)}
+        />
+      ) : mostrarFormulario ? (
+        <>
           <TextInput
             placeholder="Content"
             value={formPost.content || ''}
@@ -128,15 +118,15 @@ const Mapa = () => {
             style={MeuEstilo.input}
           />
           <TouchableOpacity
-            onPress={handleCreatePost}
+            onPress={salvar}
             style={[meuestilo.button, meuestilo.buttonOutline]}
           >
             <Text style={meuestilo.buttonOutlineText}>Salvar</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowForm(false)} style={meuestilo.button}>
+          <TouchableOpacity onPress={limparFormulario} style={meuestilo.button}>
             <Text style={meuestilo.buttonText}>Cancelar</Text>
           </TouchableOpacity>
-        </View>
+        </>
       ) : (
         <>
           <MapView
@@ -147,20 +137,39 @@ const Mapa = () => {
               latitudeDelta: position.latitudeDelta,
               longitudeDelta: position.longitudeDelta,
             }}
-            onPress={handleMapPress}
+            onPress={(e) => {
+              setPosition({
+                latitude: e.nativeEvent.coordinate.latitude,
+                longitude: e.nativeEvent.coordinate.longitude,
+                latitudeDelta: position.latitudeDelta,
+                longitudeDelta: position.longitudeDelta,
+              });
+              setFormPost({
+                ...formPost,
+                location: new firebase.firestore.GeoPoint(
+                  e.nativeEvent.coordinate.latitude,
+                  e.nativeEvent.coordinate.longitude
+                ),
+              });
+              setMostrarFormulario(true);
+            }}
           >
             {posts.map((post, index) => (
               post.location ? (
                 <PostBubble 
                   key={`${post.id}-${index}`} 
                   post={post} 
-                  // Passando a função onVoltar para PostBubble
-                  onPress={() => handlePostPress(post)} 
+                  onPostPress={() => {
+                    navigation.navigate('DetalhesPost', { 
+                      post: { ...post, userId: post.userId || '' },
+                      onVoltar: () => setMostrarDetalhes(false) 
+                    }); 
+                  }} 
                 /> 
               ) : null
             ))}
           </MapView>
-          <AddPostBtn onPress={() => setShowForm(true)} />
+          <AddPostBtn onPress={() => setMostrarFormulario(true)} />
         </>
       )}
     </View>

@@ -1,62 +1,66 @@
+// /LocalFundApp/services/postService.ts
+import { firestore, geoFirestore } from "../firebase";
+import PostModel from "../model/Post";
 import firebase from 'firebase/compat/app';
 
-interface Comment {
-  userId: string;
-  comment: string;
-}
+export const findPostsNearLocation = async (
+  latitude: number,
+  longitude: number,
+  radius: number
+) => {
+  const center = new firebase.firestore.GeoPoint(latitude, longitude);
 
-interface Post {
-  id?: string;
-  userId: string; // Mantendo userId como a única informação do usuário
-  content: string;
-  createdAt: Date;
-  location?: firebase.firestore.GeoPoint; // Only GeoPoint for location
-  likes?: string[];
-  comments?: Comment[];
-}
-
-class PostModel implements Post {
-  id?: string;
-  userId: string;
-  content: string;
-  createdAt: Date;
-  location?: firebase.firestore.GeoPoint;
-  likes?: string[];
-  comments?: Comment[];
-
-  constructor(data: Partial<Post>) {
-    this.id = data.id;
-    this.userId = data.userId ?? '';
-    this.content = data.content ?? '';
-    this.createdAt = data.createdAt ?? new Date();
-    this.location = data.location;
-    this.likes = data.likes ?? [];
-    this.comments = data.comments ?? [];
-  }
-
-  toFirestore() {
-    return {
-      userId: this.userId,
-      content: this.content,
-      createdAt: this.createdAt,
-      location: this.location, // Only include GeoPoint
-      likes: this.likes,
-      comments: this.comments,
-    };
-  }
-
-  static fromFirestore(snapshot: firebase.firestore.DocumentSnapshot): PostModel {
-    const data = snapshot.data();
-    return new PostModel({
-      id: snapshot.id, 
-      userId: data?.userId ?? '',
-      content: data?.content ?? '',
-      createdAt: data?.createdAt?.toDate() ?? new Date(),
-      location: data?.location,  // Get GeoPoint from Firestore data
-      likes: data?.likes ?? [],
-      comments: data?.comments ?? [],
+  // Obtendo posts dentro do raio usando geofirestore
+  const posts = await geoFirestore
+    .collection("posts")
+    .near(center, radius)
+    .get()
+    .then((querySnapshot) => {
+      const posts: PostModel[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        // console.log('Dados do post:', data);
+        posts.push({ id: doc.id, ...data } as PostModel);
+      });
+      return posts;
     });
-  }
-}
+  return posts;
+};
 
-export default PostModel;
+export const createPost = async (post: PostModel) => {
+  await firestore.collection('posts').doc().set(post.toFirestore());
+};
+
+export const updatePost = async (post: PostModel) => {
+  await firestore.collection('posts').doc(post.id).update(post.toFirestore());
+};
+
+export const likePost = async (postId: string) => {
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    return; // Usuário não está logado
+  }
+  await firestore.collection('posts').doc(postId).update({
+    likes: firebase.firestore.FieldValue.arrayUnion(userId)
+  });
+};
+
+export const unlikePost = async (postId: string) => {
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    return; // Usuário não está logado
+  }
+  await firestore.collection('posts').doc(postId).update({
+    likes: firebase.firestore.FieldValue.arrayRemove(userId)
+  });
+};
+
+export const addComment = async (postId: string, comment: string) => {
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    return; // Usuário não está logado
+  }
+  await firestore.collection('posts').doc(postId).update({
+    comments: firebase.firestore.FieldValue.arrayUnion({ userId, comment })
+  });
+};
