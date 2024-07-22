@@ -7,7 +7,6 @@ import { createPost } from '../services/postService';
 
 const AddPost = () => {
   const [content, setContent] = useState('');
-  const [location, setLocation] = useState<firebase.firestore.GeoPoint | null>(null); // State for location
 
   const handleAddPost = async () => {
     if (content.trim() === '') {
@@ -22,13 +21,11 @@ const AddPost = () => {
           userId: currentUser.uid,
           content,
           createdAt: new Date(),
-          location, // Set the location from the state
         });
 
         const createdPost = await createPost(newPost);
         Alert.alert('Sucesso', 'Post criado com sucesso!');
         setContent('');
-        setLocation(null); // Clear the location state
       } else {
         Alert.alert('Erro', 'Você precisa estar logado para criar um post.');
       }
