@@ -87,6 +87,16 @@ const UserProfile = ({ route, navigation }: any) => {
       <TouchableOpacity onPress={() => openChat(userId, navigation)}>
         <Icon name="chat" size={30} color="#000" />
       </TouchableOpacity>
+
+      <Button
+        title="Followers"
+        onPress={() => navigation.navigate('FollowersList', { userId })}
+      />
+
+      <Button
+        title="Following"
+        onPress={() => navigation.navigate('FollowingList', { userId })}
+      />
     </View>
   );
 };

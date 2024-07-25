@@ -1,4 +1,4 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/FriendsListScreen.tsx
+// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/FollowersListScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { firestore } from '../firebase';
