@@ -1,4 +1,4 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/ListarPosts.tsx
+// LocalFundApp/screens/ListarPosts.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { firestore, auth } from '../firebase';
@@ -9,7 +9,11 @@ import AddPostBtn from '../components/AddPostBtn';
 import { getPosts, getUsers } from '../services/userService';
 import { deletePost } from '../services/postService';
 
-const ListarPosts: React.FC = () => {
+interface ListarPostsProps {
+  userId?: string;
+}
+
+const ListarPosts: React.FC<ListarPostsProps> = ({ userId }) => {
   const [posts, setPosts] = useState<PostModel[]>([]); 
   const [users, setUsers] = useState<{ [key: string]: Usuario }>({});
   const navigation = useNavigation();
@@ -19,7 +23,7 @@ const ListarPosts: React.FC = () => {
     const fetchPostsAndUsers = async () => {
       const fetchedPosts = await getPosts();
       const fetchedUsers = await getUsers();
-      setPosts(fetchedPosts);
+      setPosts(userId ? fetchedPosts.filter(post => post.userId === userId) : fetchedPosts);
       setUsers(fetchedUsers);
     };
 
@@ -27,7 +31,7 @@ const ListarPosts: React.FC = () => {
 
     const unsubscribePosts = firestore.collection('posts').onSnapshot((snapshot) => {
       const postsData: PostModel[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PostModel));
-      setPosts(postsData);
+      setPosts(userId ? postsData.filter(post => post.userId === userId) : postsData);
     });
 
     const unsubscribeUsers = firestore.collection('Usuario').onSnapshot((snapshot) => {
@@ -42,12 +46,11 @@ const ListarPosts: React.FC = () => {
       unsubscribePosts();
       unsubscribeUsers();
     };
-  }, []);
+  }, [userId]);
 
   const navigateToUserProfile = (userId: string) => {
-    // Check if the post belongs to the current user
     if (userId === currentUser?.uid) {
-      navigation.navigate('CurrentUser'); // Navigate to CurrentUser screen
+      navigation.navigate('CurrentUser');
     } else {
       console.log('Navigating to user profile with ID:', userId);
       navigation.navigate('UserProfile', { userId });
@@ -55,11 +58,10 @@ const ListarPosts: React.FC = () => {
   };
 
   const navigateToPostDetails = (postId: string) => {
-    const post = posts.find(item => item.id === postId); 
+    const post = posts.find(item => item.id === postId);
     if (post) {
       navigation.navigate('DetalhesPost', { postId, post });
     } else {
-      // Handle the case where the post is not found
       console.warn('Post not found:', postId);
     }
   };
@@ -68,7 +70,6 @@ const ListarPosts: React.FC = () => {
     const success = await deletePost(postId);
     if (success) {
       Alert.alert('Sucesso', 'Post deletado com sucesso!');
-      // You might want to update the posts state here to reflect the deletion
     } else {
       Alert.alert('Erro', 'Erro ao deletar post.');
     }
@@ -76,7 +77,6 @@ const ListarPosts: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Listagem de Posts:</Text>
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id || Math.random().toString()}
@@ -88,15 +88,10 @@ const ListarPosts: React.FC = () => {
             <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
               <Text style={styles.postAuthorNickname}>{users[item.userId]?.nickname || users[item.userId]?.username}</Text>
             </TouchableOpacity>
-            {currentUser?.uid === item.userId && (
-              <TouchableOpacity onPress={() => handleDeletePost(item.id)}>
-                <Text style={styles.deleteButton}>Deletar</Text>
-              </TouchableOpacity>
-            )}
           </View>
         )}
       />
-      <AddPostBtn />
+      {!userId && <AddPostBtn />}
     </View>
   );
 };

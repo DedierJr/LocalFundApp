@@ -1,10 +1,12 @@
 // LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Button, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
 import { openChat, followUser, unfollowUser } from '../services/chatService';
+import styles from '../styles/layout/UserProfile'
+import ListarPosts from './ListarPosts';
 
 const UserProfile = ({ route, navigation }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
@@ -97,37 +99,10 @@ const UserProfile = ({ route, navigation }: any) => {
         title="Following"
         onPress={() => navigation.navigate('FollowingList', { userId })}
       />
+
+      <ListarPosts userId={userId} />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profile: {
-    alignItems: 'center',
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-  },
-  username: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  nickname: {
-    fontSize: 16,
-    color: 'grey',
-  },
-  bio: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginHorizontal: 20,
-  },
-});
 
 export default UserProfile;
