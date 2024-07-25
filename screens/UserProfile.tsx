@@ -8,6 +8,7 @@ import { openChat, followUser, unfollowUser } from '../services/chatService';
 import styles from '../styles/layout/UserProfile'
 import ListarPosts from './ListarPosts';
 
+
 const UserProfile = ({ route, navigation }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
   const [isFollowing, setIsFollowing] = useState<boolean>(false);

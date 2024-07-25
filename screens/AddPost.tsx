@@ -4,6 +4,7 @@ import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { auth, firestore } from '../firebase';
 import PostModel from '../model/Post';
 import { createPost } from '../services/postService';
+import styles from '../styles/layout/AddPost'
 
 const AddPost = () => {
   const [content, setContent] = useState('');
@@ -49,20 +50,5 @@ const AddPost = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-    backgroundColor: '#fff',
-  },
-});
 
 export default AddPost;

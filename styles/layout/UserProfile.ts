@@ -1,13 +1,13 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   profile: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   profileImage: {
     width: 100,
@@ -16,15 +16,15 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   nickname: {
     fontSize: 16,
-    color: 'grey',
+    color: "grey",
   },
   bio: {
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     marginHorizontal: 20,
   },
 });

@@ -4,6 +4,8 @@ import { View, Text, StyleSheet, FlatList, TextInput, Button } from 'react-nativ
 import { firestore, auth } from '../firebase';
 import { Message } from '../model/Message';
 import { createChat } from '../services/chatService';
+import styles from '../styles/layout/ChatScreen'
+
 
 const ChatScreen = ({ route, navigation }: any) => {
   const { chatId, otherUserId } = route.params;
@@ -78,39 +80,5 @@ const ChatScreen = ({ route, navigation }: any) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10,
-  },
-  message: {
-    padding: 10,
-    borderRadius: 5,
-    marginVertical: 5,
-  },
-  myMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#DCF8C6',
-  },
-  theirMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#ECECEC',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#DDD',
-    paddingTop: 5,
-  },
-  input: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: '#FFF',
-    marginRight: 10,
-  },
-});
 
 export default ChatScreen;

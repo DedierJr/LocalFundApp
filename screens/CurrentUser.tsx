@@ -3,12 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Button, Alert, Image } from 'react-native';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
-import styles from '../styles/layout/CurrentUser'
 import ListarPosts from './ListarPosts';
+import styles from '../styles/layout/CurrentUser'
+
 
 const CurrentUser = ({ navigation }: any) => {
   const [currentUser, setCurrentUser] = useState<Usuario | null>(null);
-
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
       if (user) {

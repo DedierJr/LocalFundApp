@@ -4,6 +4,7 @@ import { firestore, auth } from '../firebase';
 import { Chat } from '../model/Chat';
 import { Usuario } from '../model/Usuario';
 import { useNavigation } from '@react-navigation/native';
+import styles from '../styles/layout/Messages'
 
 const Messages = () => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -90,28 +91,5 @@ const Messages = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  chatItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 15,
-  },
-  chatItemText: {
-    fontSize: 18,
-  },
-});
 
 export default Messages;

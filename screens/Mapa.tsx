@@ -12,6 +12,8 @@ import { findPostsNearLocation, createPost } from '../services/postService';
 import firebase from 'firebase/compat/app';
 import AddPostBtn from '../components/AddPostBtn';
 import PostBubble from '../components/PostBubble'; // Importando o novo componente
+//import styles from '../styles/layout/Mapa'
+
 
 const Mapa = () => {
   const [formPost, setFormPost] = useState<Partial<PostModel>>({});
