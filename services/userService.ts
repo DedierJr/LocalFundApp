@@ -165,3 +165,44 @@ export const searchUsers = async (searchTerm: string) => {
     return [];
   }
 };
+
+export const getFollowingUsers = async () => {
+  const currentUserId = auth.currentUser?.uid;
+
+  if (!currentUserId) {
+    console.error('ID do usuário atual é inválido.');
+    return [];
+  }
+
+  try {
+    const currentUserRef = firestore.collection('Usuario').doc(currentUserId);
+    const currentUserDoc = await currentUserRef.get();
+
+    if (!currentUserDoc.exists) {
+      console.error('Usuário atual não encontrado.');
+      return [];
+    }
+
+    const currentUser = new Usuario(currentUserDoc.data());
+    const followingIds = currentUser.following;
+
+    const followingUsers = await Promise.all(
+      followingIds.map(async (userId) => {
+        const userRef = firestore.collection('Usuario').doc(userId);
+        const userDoc = await userRef.get();
+
+        if (userDoc.exists) {
+          return new Usuario(userDoc.data());
+        } else {
+          console.error(`Usuário com ID ${userId} não encontrado.`);
+          return null;
+        }
+      })
+    );
+
+    return followingUsers.filter(user => user !== null);
+  } catch (error) {
+    console.error('Erro ao obter usuários seguidos:', error);
+    return [];
+  }
+};

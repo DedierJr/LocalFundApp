@@ -4,44 +4,34 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 10,
   },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+  filterButton: {
+    padding: 10,
+    backgroundColor: '#007BFF',
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  filterButtonText: {
+    color: '#FFF',
+    fontSize: 16,
   },
   postContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
+    marginBottom: 15,
     padding: 10,
-    marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#DDD',
   },
   postContent: {
     fontSize: 16,
     marginBottom: 5,
-    flex: 1,
   },
   postAuthorNickname: {
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  deleteButton: {
-    color: 'red',
-  },
-  followingButton: {
-    padding: 10,
-    backgroundColor: '#007bff',
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  followingButtonText: {
-    color: 'white',
-    textAlign: 'center',
+    fontSize: 14,
+    color: '#555',
   },
 });
 
