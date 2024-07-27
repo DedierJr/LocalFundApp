@@ -1,6 +1,5 @@
-// LocalFundApp/screens/Mapa.tsx
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import MapView from 'react-native-maps';
 import MeuEstilo from '../estiloMapa';
 import { useNavigation } from '@react-navigation/native';
@@ -9,11 +8,11 @@ import meuestilo from '../meuestilo';
 import PostModel from '../model/Post';
 import DetalhesPost from './DetalhesPost';
 import { findPostsNearLocation, createPost } from '../services/postService';
+import { getFollowingUsers } from '../services/userService';
 import firebase from 'firebase/compat/app';
 import AddPostBtn from '../components/AddPostBtn';
 import PostBubble from '../components/PostBubble'; // Importando o novo componente
-//import styles from '../styles/layout/Mapa'
-
+import styles from '../styles/layout/Mapa';
 
 const Mapa = () => {
   const [formPost, setFormPost] = useState<Partial<PostModel>>({});
@@ -27,6 +26,8 @@ const Mapa = () => {
   });
   const [mostrarDetalhes, setMostrarDetalhes] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [showFollowingPosts, setShowFollowingPosts] = useState(false);
+  const [followingIds, setFollowingIds] = useState<string[]>([]);
   const navigation = useNavigation();
 
   const postsListener = useRef<firebase.Unsubscribe | null>(null);
@@ -50,7 +51,7 @@ const Mapa = () => {
           newPosts.push({
             id: doc.id,
             createdAt: doc.data().createdAt.toDate(), // Convertendo o timestamp para Date
-            ...doc.data() 
+            ...doc.data()
           } as PostModel);
         });
         setPosts(newPosts);
@@ -67,10 +68,21 @@ const Mapa = () => {
     };
   }, [position]);
 
+  useEffect(() => {
+    const fetchFollowingIds = async () => {
+      const followingUsers = await getFollowingUsers();
+      setFollowingIds(followingUsers.map(user => user.id));
+    };
+
+    if (auth.currentUser) {
+      fetchFollowingIds();
+    }
+  }, []);
+
   const limparFormulario = () => {
     setFormPost({
       content: '',
-      location: undefined, 
+      location: undefined,
     });
     setMostrarFormulario(false);
   };
@@ -88,10 +100,10 @@ const Mapa = () => {
         userId,
         ...formPost,
         createdAt: new Date(),
-        location: formPost.location 
+        location: formPost.location
       });
 
-      await createPost(post); 
+      await createPost(post);
       Alert.alert('Sucesso', 'Post adicionado com sucesso');
       limparFormulario();
     } catch (error) {
@@ -104,8 +116,24 @@ const Mapa = () => {
     return conteudo.length > maxLength ? conteudo.substring(0, maxLength) + '...' : conteudo;
   };
 
+  const toggleShowFollowingPosts = () => {
+    setShowFollowingPosts(prevState => !prevState);
+  };
+
+  const filteredPosts = showFollowingPosts 
+    ? posts.filter(post => followingIds.includes(post.userId))
+    : posts;
+
   return (
     <View style={MeuEstilo.container}>
+      <TouchableOpacity
+        style={styles.filterButton}
+        onPress={toggleShowFollowingPosts}
+      >
+        <Text style={styles.filterButtonText}>
+          {showFollowingPosts ? 'Mostrar Todos os Posts' : 'Mostrar Posts de Usuários Seguidos'}
+        </Text>
+      </TouchableOpacity>
       {mostrarDetalhes ? (
         <DetalhesPost
           post={posts.find(p => p.id === postSelecionado)}
@@ -156,7 +184,7 @@ const Mapa = () => {
               setMostrarFormulario(true);
             }}
           >
-            {posts.map((post, index) => (
+            {filteredPosts.map((post, index) => (
               post.location ? (
                 <PostBubble 
                   key={`${post.id}-${index}`} 
@@ -167,7 +195,7 @@ const Mapa = () => {
                       onVoltar: () => setMostrarDetalhes(false) 
                     }); 
                   }} 
-                /> 
+                />
               ) : null
             ))}
           </MapView>
