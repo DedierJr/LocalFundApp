@@ -4,10 +4,9 @@ import { View, Text, Button, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Usuario } from '../model/Usuario';
 import { firestore, auth } from '../firebase';
-import { openChat, followUser, unfollowUser } from '../services/chatService';
-import styles from '../styles/layout/UserProfile'
+import { openChat, followUser, unfollowUser } from '../services/userService';
+import styles from '../styles/layout/UserProfile';
 import ListarPosts from './ListarPosts';
-
 
 const UserProfile = ({ route, navigation }: any) => {
   const [user, setUser] = useState<Usuario | null>(null);
@@ -52,16 +51,20 @@ const UserProfile = ({ route, navigation }: any) => {
     if (!user) {
       return;
     }
-    followUser(userId, user, navigation);
-    setIsFollowing(true);
+    const result = await followUser(userId);
+    if (result) {
+      setIsFollowing(true);
+    }
   };
 
   const handleUnfollow = async () => {
     if (!user) {
       return;
     }
-    unfollowUser(userId, user, navigation);
-    setIsFollowing(false);
+    const result = await unfollowUser(userId);
+    if (result) {
+      setIsFollowing(false);
+    }
   };
 
   if (!user) {

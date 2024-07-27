@@ -8,7 +8,7 @@ export const followUser = async (userId: string) => {
 
   if (!currentUserId || !userId) {
     console.error('IDs de usuário inválidos.');
-    return;
+    return false;
   }
 
   try {
@@ -20,7 +20,7 @@ export const followUser = async (userId: string) => {
 
     if (!userDoc.exists || !currentUserDoc.exists) {
       console.error('Usuário não encontrado.');
-      return;
+      return false;
     }
 
     const user = new Usuario(userDoc.data());
@@ -52,7 +52,7 @@ export const unfollowUser = async (userId: string) => {
 
   if (!currentUserId || !userId) {
     console.error('IDs de usuário inválidos.');
-    return;
+    return false;
   }
 
   try {
@@ -64,7 +64,7 @@ export const unfollowUser = async (userId: string) => {
 
     if (!userDoc.exists || !currentUserDoc.exists) {
       console.error('Usuário não encontrado.');
-      return;
+      return false;
     }
 
     const user = new Usuario(userDoc.data());
@@ -97,7 +97,7 @@ export const getUserById = async (userId: string) => {
     if (doc.exists) {
       const userData = doc.data();
       if (userData) {
-        return new Usuario(userData); // Removendo a linha user.destroy()
+        return new Usuario(userData);
       } else {
         console.error('Dados do usuário estão vazios.');
         return null;
@@ -153,7 +153,7 @@ export const searchUsers = async (searchTerm: string) => {
       .get();
 
     const users = snapshot.docs
-      .filter(doc => doc.id !== currentUserId) 
+      .filter(doc => doc.id !== currentUserId)
       .map(doc => ({
         id: doc.id,
         ...doc.data(),
