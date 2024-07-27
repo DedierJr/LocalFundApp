@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import MapView from 'react-native-maps';
 import MeuEstilo from '../estiloMapa';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { firestore, auth } from '../firebase';
 import meuestilo from '../meuestilo';
 import PostModel from '../model/Post';
@@ -12,8 +12,8 @@ import { findPostsNearLocation, createPost } from '../services/postService';
 import { getFollowingUsers } from '../services/userService';
 import firebase from 'firebase/compat/app';
 import AddPostBtn from '../components/AddPostBtn';
-import PostBubble from '../components/PostBubble'; // Importando o novo componente
-import styles from '../styles/layout/Mapa' // os estilos dessa tela estão nesse arquivo
+import PostBubble from '../components/PostBubble';
+import styles from '../styles/layout/Mapa';
 
 const Mapa = () => {
   const [formPost, setFormPost] = useState<Partial<PostModel>>({});
@@ -80,6 +80,15 @@ const Mapa = () => {
       fetchFollowingIds();
     }
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // A função retornada será executada quando a tela perder o foco
+      return () => {
+        setMostrarFormulario(false);
+      };
+    }, [])
+  );
 
   const limparFormulario = () => {
     setFormPost({
@@ -192,10 +201,13 @@ const Mapa = () => {
                   key={`${post.id}-${index}`} 
                   post={post} 
                   onPostPress={() => {
+                    setMostrarFormulario(false); // Certifique-se de que o formulário está oculto
+                    setMostrarDetalhes(true); // Mostrar detalhes
+                    setPostSelecionado(post.id); // Selecionar o post
                     navigation.navigate('DetalhesPost', { 
                       post: { ...post, userId: post.userId || '' },
                       onVoltar: () => setMostrarDetalhes(false) 
-                    }); 
+                    });
                   }} 
                 />
               ) : null
