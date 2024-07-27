@@ -1,3 +1,4 @@
+// LocalFundApp/screens/Mapa.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import MapView from 'react-native-maps';
@@ -12,7 +13,7 @@ import { getFollowingUsers } from '../services/userService';
 import firebase from 'firebase/compat/app';
 import AddPostBtn from '../components/AddPostBtn';
 import PostBubble from '../components/PostBubble'; // Importando o novo componente
-import styles from '../styles/layout/Mapa';
+import styles from '../styles/layout/Mapa' // os estilos dessa tela estão nesse arquivo
 
 const Mapa = () => {
   const [formPost, setFormPost] = useState<Partial<PostModel>>({});
@@ -48,10 +49,11 @@ const Mapa = () => {
       .onSnapshot((snapshot) => {
         const newPosts: PostModel[] = [];
         snapshot.forEach((doc) => {
+          const data = doc.data();
           newPosts.push({
             id: doc.id,
-            createdAt: doc.data().createdAt.toDate(), // Convertendo o timestamp para Date
-            ...doc.data()
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(), // Tratamento do campo createdAt
+            ...data,
           } as PostModel);
         });
         setPosts(newPosts);
