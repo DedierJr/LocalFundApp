@@ -1,6 +1,6 @@
-// /LocalFundApp/services/postService.ts
-import { firestore, geoFirestore, auth } from "../firebase";
-import PostModel from "../model/Post";
+// LocalFundApp/services/postService.ts
+import { firestore } from '../firebase';
+import PostModel from '../model/Post';
 import firebase from 'firebase/compat/app';
 
 export const findPostsNearLocation = async (

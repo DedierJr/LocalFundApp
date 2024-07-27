@@ -1,10 +1,10 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/screens/AddPost.tsx
+// /LocalFundApp/screens/AddPost.tsx
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { auth, firestore } from '../firebase';
+import { auth } from '../firebase';
 import PostModel from '../model/Post';
 import { createPost } from '../services/postService';
-import styles from '../styles/layout/AddPost'
+import styles from '../styles/layout/AddPost';
 
 const AddPost = () => {
   const [content, setContent] = useState('');
@@ -24,7 +24,7 @@ const AddPost = () => {
           createdAt: new Date(),
         });
 
-        const createdPost = await createPost(newPost);
+        await createPost(newPost);
         Alert.alert('Sucesso', 'Post criado com sucesso!');
         setContent('');
       } else {

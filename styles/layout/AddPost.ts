@@ -1,17 +1,18 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: '#fff',
   },
   input: {
+    height: 100,
+    borderColor: '#ccc',
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-    backgroundColor: "#fff",
+    paddingHorizontal: 10,
+    marginBottom: 20,
+    textAlignVertical: 'top',
   },
 });
 

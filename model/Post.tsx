@@ -1,4 +1,4 @@
-// /LocalFundApp/model/Post.tsx
+// LocalFundApp/model/Post.tsx
 import firebase from 'firebase/compat/app';
 
 interface Comment {
@@ -36,14 +36,17 @@ class PostModel implements Post {
   }
 
   toFirestore() {
-    return {
+    const firestoreData: any = {
       userId: this.userId,
       content: this.content,
       createdAt: this.createdAt,
-      location: this.location, // Only include GeoPoint
       likes: this.likes,
       comments: this.comments,
     };
+    if (this.location) {
+      firestoreData.location = this.location; // Only include location if it is defined
+    }
+    return firestoreData;
   }
 
   static fromFirestore(snapshot: firebase.firestore.DocumentSnapshot): PostModel {
