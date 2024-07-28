@@ -1,20 +1,32 @@
+// /LocalFundApp/screens/Login.tsx
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, Alert, Button } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Alert, Button, TouchableOpacity } from 'react-native';
+import { useFonts, Poppins_400Regular } from '@expo-google-fonts/poppins';
+import AppLoading from 'expo-app-loading';
 import { auth } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
-import { StackActions } from '@react-navigation/native'; 
-import styles from '../styles/layout/Login'
+import { StackActions } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import styles from '../styles/layout/Login';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const navigation = useNavigation();
 
+  let [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
+
   const handleLogin = async () => {
     try {
       await auth.signInWithEmailAndPassword(email, senha);
-      // After successful login, navigate to the desired screen
-      navigation.dispatch(StackActions.replace('DrawerRoutes'));  // Navigate to DrawerRoutes
+      // Após o login bem-sucedido, navegar para a tela desejada
+      navigation.dispatch(StackActions.replace('DrawerRoutes')); // Navegar para DrawerRoutes
     } catch (error) {
       console.error('Erro no login:', error);
       Alert.alert('Erro', 'Email ou senha inválidos.');
@@ -22,34 +34,44 @@ const Login = () => {
   };
 
   const handleRegister = () => {
-    // Handle registration logic here
-    // For example, navigate to the registration screen
-    navigation.navigate('Registro'); // Assuming 'Register' is your registration screen
+    // Lógica de registro
+    navigation.navigate('Registro'); // Supondo que 'Registro' seja a tela de registro
   };
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Digite seu email"
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        value={senha}
-        onChangeText={setSenha}
-        placeholder="Digite sua senha"
-        secureTextEntry
-      />
-      <View style={styles.buttonContainer}>
-        <Button title="Login" onPress={handleLogin} color="blue" />
+      <Text style={styles.h1}>SpotLink</Text>
+      <View style={styles.form}>
+        <View style={styles.formField}>
+          <Ionicons name="mail" size={24} color="white" />
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Digite seu email"
+            placeholderTextColor="#ccc"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+        <View style={styles.formField}>
+          <Ionicons name="lock-closed" size={24} color="white" />
+          <TextInput
+            style={styles.input}
+            value={senha}
+            onChangeText={setSenha}
+            placeholder="Digite sua senha"
+            placeholderTextColor="#ccc"
+            secureTextEntry
+          />
+        </View>
       </View>
-      <View style={styles.buttonContainer}>
-        <Button title="Registrar" onPress={handleRegister} color="blue" />
-      </View>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Login</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={handleRegister}>
+        <Text style={styles.buttonText}>Registrar</Text>
+      </TouchableOpacity>
     </View>
   );
 };

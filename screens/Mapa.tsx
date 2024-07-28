@@ -1,6 +1,5 @@
-// LocalFundApp/screens/Mapa.tsx
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import MapView from 'react-native-maps';
 import MeuEstilo from '../estiloMapa';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -14,6 +13,7 @@ import firebase from 'firebase/compat/app';
 import AddPostBtn from '../components/AddPostBtn';
 import PostBubble from '../components/PostBubble';
 import styles from '../styles/layout/Mapa';
+import darkMapStyle from '../styles/mapStyle.json';
 
 const Mapa = () => {
   const [formPost, setFormPost] = useState<Partial<PostModel>>({});
@@ -127,24 +127,32 @@ const Mapa = () => {
     return conteudo.length > maxLength ? conteudo.substring(0, maxLength) + '...' : conteudo;
   };
 
-  const toggleShowFollowingPosts = () => {
-    setShowFollowingPosts(prevState => !prevState);
-  };
-
   const filteredPosts = showFollowingPosts 
     ? posts.filter(post => followingIds.includes(post.userId))
     : posts;
 
   return (
     <View style={MeuEstilo.container}>
-      <TouchableOpacity
-        style={styles.filterButton}
-        onPress={toggleShowFollowingPosts}
-      >
-        <Text style={styles.filterButtonText}>
-          {showFollowingPosts ? 'Mostrar Todos os Posts' : 'Mostrar Posts de Usuários Seguidos'}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.topButtonsContainer}>
+        <TouchableOpacity
+          style={[
+            styles.topButton,
+            !showFollowingPosts && styles.activeButton
+          ]}
+          onPress={() => setShowFollowingPosts(false)}
+        >
+          <Text style={styles.topButtonText}>Todos</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.topButton,
+            showFollowingPosts && styles.activeButton
+          ]}
+          onPress={() => setShowFollowingPosts(true)}
+        >
+          <Text style={styles.topButtonText}>Seguindo</Text>
+        </TouchableOpacity>
+      </View>
       {mostrarDetalhes ? (
         <DetalhesPost
           post={posts.find(p => p.id === postSelecionado)}
@@ -178,6 +186,7 @@ const Mapa = () => {
               latitudeDelta: position.latitudeDelta,
               longitudeDelta: position.longitudeDelta,
             }}
+            customMapStyle={darkMapStyle}
             onPress={(e) => {
               setPosition({
                 latitude: e.nativeEvent.coordinate.latitude,
