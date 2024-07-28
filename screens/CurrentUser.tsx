@@ -1,14 +1,18 @@
-// LocalFundApp/screens/CurrentUser.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, Alert, Image } from 'react-native';
+import { View, Text, TextInput, Button, Alert, Image, TouchableOpacity } from 'react-native';
 import { Usuario } from '../model/Usuario';
-import { firestore, auth } from '../firebase';
+import { firestore, auth, storage } from '../firebase';
 import ListarPosts from './ListarPosts';
-import styles from '../styles/layout/CurrentUser'
-
+import * as ImagePicker from 'expo-image-picker';
+import styles from '../styles/layout/CurrentUser';
 
 const CurrentUser = ({ navigation }: any) => {
   const [currentUser, setCurrentUser] = useState<Usuario | null>(null);
+  const [nickname, setNickname] = useState<string>('');
+  const [bio, setBio] = useState<string>('');
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
       if (user) {
@@ -18,6 +22,8 @@ const CurrentUser = ({ navigation }: any) => {
               const userData = doc.data();
               const usuario = new Usuario({ ...userData, id: doc.id }); 
               setCurrentUser(usuario);
+              setNickname(usuario.nickname || '');
+              setBio(usuario.bio || '');
             } else {
               console.error("No such user document!");
             }
@@ -45,6 +51,55 @@ const CurrentUser = ({ navigation }: any) => {
     }
   };
 
+  const handleSave = async () => {
+    try {
+      const userId = currentUser.id;
+      let fotoPerfilUrl = currentUser.fotoPerfil;
+
+      if (imageUri) {
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        const uploadTask = storage.ref(`profile-pics/${userId}`).put(blob);
+        await uploadTask;
+        fotoPerfilUrl = await uploadTask.snapshot.ref.getDownloadURL();
+      }
+
+      await firestore.collection('Usuario').doc(userId).update({
+        nickname,
+        bio,
+        fotoPerfil: fotoPerfilUrl
+      });
+
+      Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
+      setCurrentUser({
+        ...currentUser,
+        nickname,
+        bio,
+        fotoPerfil: fotoPerfilUrl
+      });
+      setIsEditing(false);
+    } catch (error) {
+      Alert.alert('Erro', 'Ocorreu um erro ao atualizar o perfil');
+      console.error('Erro ao atualizar o perfil:', error);
+    }
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const uri = result.assets && result.assets[0] ? result.assets[0].uri : null;
+      if (uri) {
+        setImageUri(uri);
+      }
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text>Bem-vindo, {currentUser.username}!</Text>
@@ -53,6 +108,39 @@ const CurrentUser = ({ navigation }: any) => {
           style={styles.profilePicture}
           source={{ uri: currentUser.fotoPerfil }}
         />
+      )}
+      {isEditing ? (
+        <>
+          <TextInput
+            placeholder="Nickname"
+            value={nickname}
+            onChangeText={setNickname}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Bio"
+            value={bio}
+            onChangeText={setBio}
+            style={styles.input}
+          />
+          <TouchableOpacity onPress={pickImage} style={styles.uploadButton}>
+            <Text style={styles.uploadButtonText}>Trocar Foto de Perfil</Text>
+          </TouchableOpacity>
+          {imageUri && (
+            <Image 
+              source={{ uri: imageUri }}
+              style={styles.profilePicture}
+            />
+          )}
+          <Button title="Salvar" onPress={handleSave} />
+          <Button title="Cancelar" onPress={() => setIsEditing(false)} />
+        </>
+      ) : (
+        <>
+          <Text>Nickname: {nickname}</Text>
+          <Text>Bio: {bio}</Text>
+          <Button title="Editar Perfil" onPress={() => setIsEditing(true)} />
+        </>
       )}
       <Button
         title="Followers"
@@ -63,7 +151,7 @@ const CurrentUser = ({ navigation }: any) => {
         onPress={() => navigation.navigate('FollowingList', { userId: currentUser.id })}
       />
       <Button title="Logout" onPress={handleLogout} />
-      <ListarPosts userId={currentUser.id} />
+      <ListarPosts userId={currentUser.id} showFollowingButton={false} />
     </View>
   );
 };

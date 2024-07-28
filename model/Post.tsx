@@ -8,12 +8,13 @@ interface Comment {
 
 interface Post {
   id?: string;
-  userId: string; // Mantendo userId como a única informação do usuário
+  userId: string; 
   content: string;
   createdAt: Date;
-  location?: firebase.firestore.GeoPoint; // Only GeoPoint for location
+  location?: firebase.firestore.GeoPoint; 
   likes?: string[];
   comments?: Comment[];
+  imageUrl?: string; // Adicionando a propriedade imageUrl
 }
 
 class PostModel implements Post {
@@ -24,6 +25,7 @@ class PostModel implements Post {
   location?: firebase.firestore.GeoPoint;
   likes?: string[];
   comments?: Comment[];
+  imageUrl?: string;
 
   constructor(data: Partial<Post>) {
     this.id = data.id;
@@ -33,6 +35,7 @@ class PostModel implements Post {
     this.location = data.location;
     this.likes = data.likes ?? [];
     this.comments = data.comments ?? [];
+    this.imageUrl = data.imageUrl; // Inicializando imageUrl 
   }
 
   toFirestore() {
@@ -44,7 +47,10 @@ class PostModel implements Post {
       comments: this.comments,
     };
     if (this.location) {
-      firestoreData.location = this.location; // Only include location if it is defined
+      firestoreData.location = this.location; 
+    }
+    if (this.imageUrl) { // Adicionando imageUrl ao objeto Firestore
+      firestoreData.imageUrl = this.imageUrl;
     }
     return firestoreData;
   }
@@ -56,9 +62,10 @@ class PostModel implements Post {
       userId: data?.userId ?? '',
       content: data?.content ?? '',
       createdAt: data?.createdAt?.toDate() ?? new Date(),
-      location: data?.location,  // Get GeoPoint from Firestore data
+      location: data?.location,  
       likes: data?.likes ?? [],
       comments: data?.comments ?? [],
+      imageUrl: data?.imageUrl, // Obtendo imageUrl do Firestore
     });
   }
 }

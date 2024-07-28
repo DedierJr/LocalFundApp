@@ -1,4 +1,3 @@
-// LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -104,7 +103,7 @@ const UserProfile = ({ route, navigation }: any) => {
         onPress={() => navigation.navigate('FollowingList', { userId })}
       />
 
-      <ListarPosts userId={userId} />
+      <ListarPosts userId={userId} showFollowingButton={false} />
     </View>
   );
 };

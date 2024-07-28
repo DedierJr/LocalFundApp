@@ -1,5 +1,5 @@
-// /home/aluno/Documentos/DedierJr/LocalFundApp/styles/layout/ListarPosts.ts
-import { StyleSheet } from 'react-native';
+// /LocalFundApp/styles/layout/ListarPosts.ts
+import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   container: {
@@ -25,6 +25,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DDD',
   },
+  postHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
   postContent: {
     fontSize: 16,
     marginBottom: 5,
@@ -32,6 +37,19 @@ const styles = StyleSheet.create({
   postAuthorNickname: {
     fontSize: 14,
     color: '#555',
+    fontWeight: 'bold',
+  },
+  postAuthorProfileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  postImage: {
+    width: '100%',
+    height: 200, 
+    resizeMode: 'cover', 
+    marginBottom: 10,
   },
 });
 

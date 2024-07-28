@@ -1,6 +1,6 @@
 // LocalFundApp/screens/ListarPosts.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
 import { firestore, auth } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
 import PostModel from '../model/Post';
@@ -12,9 +12,10 @@ import styles from '../styles/layout/ListarPosts';
 
 interface ListarPostsProps {
   userId?: string;
+  showFollowingButton?: boolean;
 }
 
-const ListarPosts: React.FC<ListarPostsProps> = ({ userId }) => {
+const ListarPosts: React.FC<ListarPostsProps> = ({ userId, showFollowingButton = true }) => {
   const [posts, setPosts] = useState<PostModel[]>([]);
   const [users, setUsers] = useState<{ [key: string]: Usuario }>({});
   const [showFollowingPosts, setShowFollowingPosts] = useState(false);
@@ -113,20 +114,25 @@ const ListarPosts: React.FC<ListarPostsProps> = ({ userId }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.filterButton}
-        onPress={toggleShowFollowingPosts}
-      >
-        <Text style={styles.filterButtonText}>
-          {showFollowingPosts ? 'Mostrar Todos os Posts' : 'Mostrar Posts de Usuários Seguidos'}
-        </Text>
-      </TouchableOpacity>
+      {showFollowingButton && (
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={toggleShowFollowingPosts}
+        >
+          <Text style={styles.filterButtonText}>
+            {showFollowingPosts ? 'Mostrar Todos os Posts' : 'Mostrar Posts de Usuários Seguidos'}
+          </Text>
+        </TouchableOpacity>
+      )}
       <FlatList
         data={filteredPosts}
         keyExtractor={(item) => item.id || Math.random().toString()}
         renderItem={({ item }) => (
           <View style={styles.postContainer}>
             <TouchableOpacity onPress={() => navigateToPostDetails(item.id)}>
+              {item.imageUrl ? ( // Verifica se há imagem no post
+                <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
+              ) : null}
               <Text style={styles.postContent}>{item.content}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>

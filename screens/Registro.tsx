@@ -6,8 +6,7 @@ import { Usuario } from '../model/Usuario';
 import { useNavigation } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
-import styles from '../styles/layout/Registro'
-
+import styles from '../styles/layout/Registro';
 
 const Registro = () => {
   const [formUsuario, setFormUsuario] = useState<Partial<Usuario>>({
@@ -43,13 +42,15 @@ const Registro = () => {
       console.log('Usuário criado com sucesso, UID:', userId);
 
       // Upload da foto de perfil para o Storage
-      let fotoPerfilUrl = '';
+      let fotoPerfilUrl = formUsuario.fotoPerfil; // Use a foto de perfil padrão inicialmente
       if (imageUri) {
+        console.log('Iniciando upload da imagem selecionada:', imageUri);
         const response = await fetch(imageUri);
         const blob = await response.blob();
-        const uploadTask = storage().ref(`profile-pics/${userId}`).put(blob);
+        const uploadTask = storage.ref(`profile-pics/${userId}`).put(blob);
         await uploadTask;
         fotoPerfilUrl = await uploadTask.snapshot.ref.getDownloadURL();
+        console.log('Upload concluído, URL da imagem:', fotoPerfilUrl);
       }
 
       const newUser = new Usuario({
@@ -59,7 +60,7 @@ const Registro = () => {
         email,
         senha,
         datanascimento,
-        fotoPerfil: fotoPerfilUrl || formUsuario.fotoPerfil, // Use a URL do Storage se disponível, senão o padrão
+        fotoPerfil: fotoPerfilUrl, // Use a URL do Storage se disponível, senão o padrão
         bio,
         followers: [],
         following: [],
@@ -93,8 +94,18 @@ const Registro = () => {
       quality: 1,
     });
 
-    if (!result.cancelled) {
-      setImageUri(result.uri);
+    console.log('Resultado do ImagePicker:', result); // Adicionando log para verificar o resultado do ImagePicker
+
+    if (!result.canceled) {
+      const uri = result.assets && result.assets[0] ? result.assets[0].uri : null;
+      if (uri) {
+        console.log('Imagem selecionada:', uri);
+        setImageUri(uri);
+      } else {
+        console.error('Erro: URI da imagem está indefinida');
+      }
+    } else {
+      console.log('Seleção de imagem cancelada');
     }
   };
 
