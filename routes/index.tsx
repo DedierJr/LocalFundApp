@@ -4,6 +4,7 @@ import DrawerRoutes from './drawer.routes'; // Import DrawerRoutes
 import UserProfile from "../screens/UserProfile";
 import CurrentUser from "../screens/CurrentUser";
 import AddPost from "../screens/AddPost";
+import CriarPost from "../screens/CriarPost";
 import DetalhesPost from "../screens/DetalhesPost";
 import Registro from "../screens/Registro";
 import SearchUsers from "../screens/SearchUsers";
@@ -42,6 +43,7 @@ export default function Routes() {
         <Stack.Screen name="UserProfile" component={UserProfile} />
         <Stack.Screen name="CurrentUser" component={CurrentUser} />
         <Stack.Screen name="AddPost" component={AddPost} />
+        <Stack.Screen name="CriarPost" component={CriarPost} />
         <Stack.Screen name="DetalhesPost" component={DetalhesPost} />
         <Stack.Screen name="SearchUsers" component={SearchUsers} />
         <Stack.Screen name="Chat" component={ChatScreen} />

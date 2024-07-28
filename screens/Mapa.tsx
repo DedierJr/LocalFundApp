@@ -1,12 +1,12 @@
+// LocalFundApp/screens/Mapa.tsx
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import MapView from 'react-native-maps';
 import MeuEstilo from '../estiloMapa';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { firestore, auth } from '../firebase';
 import meuestilo from '../meuestilo';
 import PostModel from '../model/Post';
-import DetalhesPost from './DetalhesPost';
 import { findPostsNearLocation, createPost } from '../services/postService';
 import { getFollowingUsers } from '../services/userService';
 import firebase from 'firebase/compat/app';
@@ -14,9 +14,9 @@ import AddPostBtn from '../components/AddPostBtn';
 import PostBubble from '../components/PostBubble';
 import styles from '../styles/layout/Mapa';
 import darkMapStyle from '../styles/mapStyle.json';
+import CriarPost from './CriarPost'; 
 
 const Mapa = () => {
-  const [formPost, setFormPost] = useState<Partial<PostModel>>({});
   const [posts, setPosts] = useState<PostModel[]>([]);
   const [postSelecionado, setPostSelecionado] = useState<string | null>(null);
   const [position, setPosition] = useState({
@@ -33,15 +33,17 @@ const Mapa = () => {
 
   const postsListener = useRef<firebase.Unsubscribe | null>(null);
 
+  const refreshPosts = async () => {
+    const postsNearLocation = await findPostsNearLocation(
+      position.latitude,
+      position.longitude,
+      5
+    );
+    setPosts(postsNearLocation);
+  };
+
   useEffect(() => {
-    const loadPostsNearLocation = async () => {
-      const postsNearLocation = await findPostsNearLocation(
-        position.latitude,
-        position.longitude,
-        5
-      );
-      setPosts(postsNearLocation);
-    };
+    refreshPosts(); 
 
     const unsubscribe = firestore.collection('posts')
       .where('location', '<', new firebase.firestore.GeoPoint(position.latitude + 5 / 111, position.longitude + 5 / 111))
@@ -52,7 +54,7 @@ const Mapa = () => {
           const data = doc.data();
           newPosts.push({
             id: doc.id,
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(), // Tratamento do campo createdAt
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(), 
             ...data,
           } as PostModel);
         });
@@ -60,8 +62,6 @@ const Mapa = () => {
       });
 
     postsListener.current = unsubscribe;
-
-    loadPostsNearLocation();
 
     return () => {
       if (postsListener.current) {
@@ -83,49 +83,11 @@ const Mapa = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      // A função retornada será executada quando a tela perder o foco
       return () => {
         setMostrarFormulario(false);
       };
     }, [])
   );
-
-  const limparFormulario = () => {
-    setFormPost({
-      content: '',
-      location: undefined,
-    });
-    setMostrarFormulario(false);
-  };
-
-  const salvar = async () => {
-    try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) {
-        Alert.alert('Erro', 'Usuário não está logado.');
-        return;
-      }
-
-      const post = new PostModel({
-        id: '',
-        userId,
-        ...formPost,
-        createdAt: new Date(),
-        location: formPost.location
-      });
-
-      await createPost(post);
-      Alert.alert('Sucesso', 'Post adicionado com sucesso');
-      limparFormulario();
-    } catch (error) {
-      Alert.alert('Erro', 'Ocorreu um erro ao salvar o post.');
-      console.error('Erro ao salvar o post:', error);
-    }
-  };
-
-  const resumirConteudo = (conteudo: string, maxLength: number) => {
-    return conteudo.length > maxLength ? conteudo.substring(0, maxLength) + '...' : conteudo;
-  };
 
   const filteredPosts = showFollowingPosts 
     ? posts.filter(post => followingIds.includes(post.userId))
@@ -158,24 +120,6 @@ const Mapa = () => {
           post={posts.find(p => p.id === postSelecionado)}
           onVoltar={() => setMostrarDetalhes(false)}
         />
-      ) : mostrarFormulario ? (
-        <>
-          <TextInput
-            placeholder="Content"
-            value={formPost.content || ''}
-            onChangeText={content => setFormPost({ ...formPost, content })}
-            style={MeuEstilo.input}
-          />
-          <TouchableOpacity
-            onPress={salvar}
-            style={[meuestilo.button, meuestilo.buttonOutline]}
-          >
-            <Text style={meuestilo.buttonOutlineText}>Salvar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={limparFormulario} style={meuestilo.button}>
-            <Text style={meuestilo.buttonText}>Cancelar</Text>
-          </TouchableOpacity>
-        </>
       ) : (
         <>
           <MapView
@@ -194,14 +138,13 @@ const Mapa = () => {
                 latitudeDelta: position.latitudeDelta,
                 longitudeDelta: position.longitudeDelta,
               });
-              setFormPost({
-                ...formPost,
-                location: new firebase.firestore.GeoPoint(
-                  e.nativeEvent.coordinate.latitude,
-                  e.nativeEvent.coordinate.longitude
-                ),
+              navigation.navigate('CriarPost', { 
+                initialLocation: {
+                  latitude: e.nativeEvent.coordinate.latitude,
+                  longitude: e.nativeEvent.coordinate.longitude
+                },
+                onPostCreated: refreshPosts 
               });
-              setMostrarFormulario(true);
             }}
           >
             {filteredPosts.map((post, index) => (
@@ -210,9 +153,8 @@ const Mapa = () => {
                   key={`${post.id}-${index}`} 
                   post={post} 
                   onPostPress={() => {
-                    setMostrarFormulario(false); // Certifique-se de que o formulário está oculto
-                    setMostrarDetalhes(true); // Mostrar detalhes
-                    setPostSelecionado(post.id); // Selecionar o post
+                    setMostrarDetalhes(true); 
+                    setPostSelecionado(post.id); 
                     navigation.navigate('DetalhesPost', { 
                       post: { ...post, userId: post.userId || '' },
                       onVoltar: () => setMostrarDetalhes(false) 
@@ -222,7 +164,7 @@ const Mapa = () => {
               ) : null
             ))}
           </MapView>
-          <AddPostBtn onPress={() => setMostrarFormulario(true)} />
+          <AddPostBtn onPress={() => navigation.navigate('CriarPost')} /> 
         </>
       )}
     </View>

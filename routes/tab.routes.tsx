@@ -1,3 +1,5 @@
+// LocalFundApp/routes/tab.routes.tsx
+
 import React from 'react';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from '@expo/vector-icons'; 
@@ -13,6 +15,8 @@ export default function TabRoutes() {
   return (
     <Tab.Navigator screenOptions={({ route }) => ({
       headerShown: false,
+      tabBarStyle: { backgroundColor: '#EFEDE3' },
+      tabBarActiveTintColor: '#C05E3D',
       tabBarIcon: ({ focused, color, size }) => {
         let iconName;
 

@@ -1,6 +1,6 @@
 // /LocalFundApp/screens/Login.tsx
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View, Alert, Button, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Alert, TouchableOpacity } from 'react-native';
 import { useFonts, Poppins_400Regular } from '@expo-google-fonts/poppins';
 import AppLoading from 'expo-app-loading';
 import { auth } from '../firebase';
@@ -41,37 +41,40 @@ const Login = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.h1}>SpotLink</Text>
-      <View style={styles.form}>
-        <View style={styles.formField}>
-          <Ionicons name="mail" size={24} color="white" />
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Digite seu email"
-            placeholderTextColor="#ccc"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-        <View style={styles.formField}>
-          <Ionicons name="lock-closed" size={24} color="white" />
-          <TextInput
-            style={styles.input}
-            value={senha}
-            onChangeText={setSenha}
-            placeholder="Digite sua senha"
-            placeholderTextColor="#ccc"
-            secureTextEntry
-          />
+      <Text style={styles.h2}>Conectando ideias, transformando o mundo.</Text>
+      <View style={styles.main}>
+        <View style={styles.form}>
+          <View style={styles.formField}>
+            <Ionicons name="mail" size={24} color="black" />
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Digite seu email"
+              placeholderTextColor="#ccc"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+          <View style={styles.formField}>
+            <Ionicons name="lock-closed" size={24} color="black" />
+            <TextInput
+              style={styles.input}
+              value={senha}
+              onChangeText={setSenha}
+              placeholder="Digite sua senha"
+              placeholderTextColor="#ccc"
+              secureTextEntry
+            />
+          </View>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleRegister}>
+          <Text style={styles.buttonText}>Registrar</Text>
+        </TouchableOpacity>
         </View>
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Registrar</Text>
-      </TouchableOpacity>
     </View>
   );
 };

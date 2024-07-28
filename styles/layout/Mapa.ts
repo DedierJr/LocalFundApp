@@ -3,13 +3,27 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#EFEDE3',
+  },
+  main: {
+    position: 'absolute',
+    top: '50',
+    width: '90%',
+    padding: 20,
+    backgroundColor: '#F3F1EA',
+    borderRadius: 10,
+    shadowColor: '#000', // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 0.25, // Opacidade da sombra
+    shadowRadius: 3.84, // Raio da sombra
+    elevation: 5, // Elevação para Android
   },
   topButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
-    backgroundColor: "#fff", // Glassmorphism
+    backgroundColor: "#F3F1EA", // Glassmorphism
   },
   topButton: {
     paddingHorizontal: 20,
@@ -21,9 +35,9 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   activeButton: {
-    backgroundColor: '#fff', // Glassmorphism for active button
-    borderColor: '#fff',
-    borderWidth: 1,
+    backgroundColor: '#F3F1EA', // Glassmorphism for active button
+    borderColor: '#F3F1EA',
+    color: '#C05E3D',
   },
   input: {
     borderBottomWidth: 1,

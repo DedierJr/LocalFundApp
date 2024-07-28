@@ -7,14 +7,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f0f0f0', // Tom claro
+    backgroundColor: '#EFEDE3', // Tom claro
+  },
+  main: {
+    width: '90%',
+    padding: 20,
+    backgroundColor: '#F3F1EA',
+    borderRadius: 10,
+    shadowColor: '#000', // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 0.25, // Opacidade da sombra
+    shadowRadius: 3.84, // Raio da sombra
+    elevation: 5, // Elevação para Android
   },
   h1: {
+    position: 'absolute',
+    top: 60,
+    left: 35,
     fontFamily: 'Poppins_400Regular',
     fontSize: 32, // Aumentando o tamanho do h1
+    color: '#000', // Texto mais escuro para melhor contraste
+  },
+  h2: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 26,
     marginBottom: 20,
     textAlign: 'center',
-    color: '#333', // Texto mais escuro para melhor contraste
+    color: '#000', // Texto um pouco mais claro
+    width: '90%',
+    textAlign: 'left',
   },
   form: {
     width: '100%',
@@ -24,7 +45,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 15,
-    backgroundColor: '#ffffff', // Tom mais claro
+    backgroundColor: '#EFEDE3', // Tom mais claro
     borderRadius: 5,
     padding: 10,
     borderColor: '#ccc', // Adicionando uma borda leve
@@ -32,12 +53,12 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: '#333', // Texto mais escuro
+    color: '#000', // Texto mais escuro
     marginLeft: 10,
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#13262F', // Nova cor do botão
+    backgroundColor: '#C05E3D', // Nova cor do botão
     padding: 15,
     borderRadius: 5,
     marginBottom: 10,

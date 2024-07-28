@@ -1,65 +1,101 @@
-import { StyleSheet } from "react-native";
+// \LocalFundApp\styles\layout\Registro.ts
+import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff",
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#EFEDE3', // Tom claro
   },
-  inputContainer: {
-    width: "80%",
+  main: {
+    width: '90%',
+    padding: 20,
+    backgroundColor: '#F3F1EA',
+    borderRadius: 10,
+    shadowColor: '#000', // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 0.25, // Opacidade da sombra
+    shadowRadius: 3.84, // Raio da sombra
+    elevation: 5, // Elevação para Android
   },
-  input: {
-    backgroundColor: "#F6F6F6",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 5,
-    marginTop: 5,
-    marginBottom: 10,
-  },
-  buttonContainer: {
-    width: "60%",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 20,
-  },
-  button: {
-    backgroundColor: "#0782F9",
-    width: "100%",
-    padding: 15,
-    borderRadius: 5,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  dateText: {
-    color: "#0782F9",
-    fontSize: 16,
-    marginTop: 10,
+  form: {
+    width: '100%',
     marginBottom: 20,
   },
+  formField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    backgroundColor: '#EFEDE3', // Tom mais claro
+    borderRadius: 5,
+    padding: 10,
+    borderColor: '#ccc', // Adicionando uma borda leve
+    borderWidth: 1,
+  },
+  input: {
+    flex: 1,
+    color: '#000', // Texto mais escuro
+    marginLeft: 10,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: '#C05E3D', // Nova cor do botão
+    padding: 15,
+    borderRadius: 5,
+    marginBottom: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  datePicker: {
+    backgroundColor: '#EFEDE3',
+    padding: 10,
+    borderRadius: 5,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginBottom: 15,
+  },
+  dateText: {
+    color: '#000',
+  },
   imageContainer: {
-    alignItems: "center",
-    marginTop: 20,
+    alignItems: 'center',
+    marginBottom: 15,
   },
   profileImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
+    marginBottom: 10,
   },
   uploadButton: {
-    backgroundColor: "#0782F9",
+    backgroundColor: '#C05E3D',
     padding: 10,
     borderRadius: 5,
-    marginTop: 10,
   },
   uploadButtonText: {
-    color: "white",
-    fontWeight: "bold",
+    color: '#fff',
+    fontWeight: '700',
+  },
+    postContentInput: {
+    flex: 1,
+    color: '#000', 
+    marginLeft: 10,
+    fontSize: 16,
+    borderWidth: 1, 
+    borderColor: '#ccc', 
+    borderRadius: 5,
+    padding: 10, 
+    marginBottom: 15, 
+    minHeight: 80, 
+    textAlignVertical: 'top' 
   },
 });
 
