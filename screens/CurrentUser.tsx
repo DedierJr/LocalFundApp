@@ -1,3 +1,4 @@
+// LocalFundApp/screens/CurrentUser.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Alert, Image, TouchableOpacity } from 'react-native';
 import { Usuario } from '../model/Usuario';
@@ -102,7 +103,7 @@ const CurrentUser = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <Text>Bem-vindo, {currentUser.username}!</Text>
+      <Text style={styles.nickname}>{currentUser.nickname}</Text>
       {currentUser.fotoPerfil && (
         <Image 
           style={styles.profilePicture}
@@ -137,21 +138,25 @@ const CurrentUser = ({ navigation }: any) => {
         </>
       ) : (
         <>
-          <Text>Nickname: {nickname}</Text>
-          <Text>Bio: {bio}</Text>
+          <View style={styles.info}>
+            <Text style={styles.username}>{'@'+currentUser.username+': '}</Text>
+            <Text style={styles.bio}>{bio}</Text>
+          </View>
           <Button title="Editar Perfil" onPress={() => setIsEditing(true)} />
         </>
       )}
-      <Button
-        title="Followers"
-        onPress={() => navigation.navigate('FollowersList', { userId: currentUser.id })}
-      />
-      <Button
-        title="Following"
-        onPress={() => navigation.navigate('FollowingList', { userId: currentUser.id })}
-      />
-      <Button title="Logout" onPress={handleLogout} />
+      <View style={styles.buttons}>
+        <Button
+          title="Seguidores"
+          onPress={() => navigation.navigate('FollowersList', { userId: currentUser.id })}
+        />
+        <Button
+          title="Seguindo"
+          onPress={() => navigation.navigate('FollowingList', { userId: currentUser.id })}
+        />
+      </View>
       <ListarPosts userId={currentUser.id} showFollowingButton={false} />
+      <Button title="Sair" onPress={handleLogout} />
     </View>
   );
 };

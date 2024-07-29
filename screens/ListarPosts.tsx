@@ -1,6 +1,6 @@
 // LocalFundApp/screens/ListarPosts.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, Image } from 'react-native';
 import { firestore, auth } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
 import PostModel from '../model/Post';
@@ -12,9 +12,10 @@ import styles from '../styles/layout/ListarPosts';
 
 interface ListarPostsProps {
   userId?: string;
+  showFollowingButton?: boolean;
 }
 
-const ListarPosts: React.FC<ListarPostsProps> = ({ userId }) => {
+const ListarPosts: React.FC<ListarPostsProps> = ({ userId, showFollowingButton = true }) => {
   const [posts, setPosts] = useState<PostModel[]>([]);
   const [users, setUsers] = useState<{ [key: string]: Usuario }>({});
   const [showFollowingPosts, setShowFollowingPosts] = useState(false);
@@ -96,20 +97,22 @@ const ListarPosts: React.FC<ListarPostsProps> = ({ userId }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.filterButtonsContainer}>
-        <TouchableOpacity
-          style={[styles.filterButton, !showFollowingPosts && styles.activeButton]} // Adiciona a classe activeButton se não estiver mostrando os posts de quem segue
-          onPress={() => setShowFollowingPosts(false)}
-        >
-          <Text style={styles.filterButtonText}>Todos</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, showFollowingPosts && styles.activeButton]} // Adiciona a classe activeButton se estiver mostrando os posts de quem segue
-          onPress={() => setShowFollowingPosts(true)}
-        >
-          <Text style={styles.filterButtonText}>Seguindo</Text>
-        </TouchableOpacity>
-      </View>
+      {showFollowingButton && (
+        <View style={styles.filterButtonsContainer}>
+          <TouchableOpacity
+            style={[styles.filterButton, !showFollowingPosts && styles.activeButton]} // Adiciona a classe activeButton se não estiver mostrando os posts de quem segue
+            onPress={() => setShowFollowingPosts(false)}
+          >
+            <Text style={styles.filterButtonText}>Todos</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, showFollowingPosts && styles.activeButton]} // Adiciona a classe activeButton se estiver mostrando os posts de quem segue
+            onPress={() => setShowFollowingPosts(true)}
+          >
+            <Text style={styles.filterButtonText}>Seguindo</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       <FlatList
         data={showFollowingPosts ? posts.filter(post => followingIds.includes(post.userId)) : posts}
         keyExtractor={(item) => item.id || Math.random().toString()}

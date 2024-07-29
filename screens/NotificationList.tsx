@@ -79,7 +79,7 @@ const NotificationList = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Notifications</Text>
+        <Text style={styles.title}>Notificações</Text>
       </View>
       {currentUser ? (
         <FlatList

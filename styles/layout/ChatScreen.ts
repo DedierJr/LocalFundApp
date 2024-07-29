@@ -4,6 +4,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
+    marginTop: 30,
+    marginBottom: 30,
+    backgroundColor: "#F3F1EA",
   },
   message: {
     padding: 10,

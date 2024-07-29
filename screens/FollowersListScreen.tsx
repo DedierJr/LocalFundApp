@@ -1,6 +1,6 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/screens/FollowersListScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image } from 'react-native';
 import { firestore } from '../firebase';
 import { Usuario } from '../model/Usuario';
 import styles from '../styles/layout/FollowersList';
@@ -41,15 +41,16 @@ const FollowersListScreen = ({ route, navigation }: any) => {
 
   const renderFollowerItem = ({ item }: { item: Usuario }) => (
     <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: item.id })}>
-      <View style={styles.followerItem}>
-        <Text style={styles.followerName}>{item.username}</Text>
+      <View style={styles.resultContainer}>
+        <Image source={{ uri: item.fotoPerfil }} style={styles.profileImage} />
+        <Text style={styles.result}>{item.username}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Followers</Text>
+      <Text style={styles.title}>Seguidores</Text>
       <FlatList
         data={followersList}
         renderItem={renderFollowerItem}
@@ -58,6 +59,5 @@ const FollowersListScreen = ({ route, navigation }: any) => {
     </View>
   );
 };
-
 
 export default FollowersListScreen;
