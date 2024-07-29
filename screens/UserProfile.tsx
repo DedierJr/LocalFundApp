@@ -1,4 +1,4 @@
-// LocalFundApp/screens/UserProfile.tsx
+// /LocalFundApp/screens/UserProfile.tsx
 import React, { useState, useEffect } from "react";
 import { View, Text, Button, Image, TouchableOpacity, Alert } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";

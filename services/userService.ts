@@ -1,9 +1,9 @@
-// LocalFundApp/services/userService.ts
-import { firestore, auth } from '../firebase';
+// /LocalFundApp/services/userService.ts
+import { firestore, auth, firebase } from '../firebase';
 import { Usuario } from '../model/Usuario';
 import { sendNotification } from './notificationService';
 import { Alert } from 'react-native';
-import { findChatByParticipants, createChat } from '../services/chatService'; // Import both functions
+import { findChatByParticipants, createChat } from '../services/chatService'; 
 
 export const followUser = async (userId: string, user: Usuario, navigation: any) => {
   const currentUserId = auth.currentUser?.uid;
@@ -14,11 +14,11 @@ export const followUser = async (userId: string, user: Usuario, navigation: any)
   }
 
   try {
-    await firestore.collection('Usuario').doc(userId).update({
-      followers: firestore.FieldValue.arrayUnion(currentUserId)
+    await firestore.collection('Usuario').doc(userId).update({ 
+      followers: firebase.firestore.FieldValue.arrayUnion(currentUserId) 
     });
     await firestore.collection('Usuario').doc(currentUserId).update({
-      following: firestore.FieldValue.arrayUnion(userId)
+      following: firebase.firestore.FieldValue.arrayUnion(userId)
     });
 
     sendNotification(userId, `começou a te seguir!`, 'followed');
@@ -39,11 +39,11 @@ export const unfollowUser = async (userId: string, user: Usuario, navigation: an
   }
 
   try {
-    await firestore.collection('Usuario').doc(userId).update({
-      followers: firestore.FieldValue.arrayRemove(currentUserId)
+    await firestore.collection('Usuario').doc(userId).update({ 
+      followers: firebase.firestore.FieldValue.arrayRemove(currentUserId) 
     });
     await firestore.collection('Usuario').doc(currentUserId).update({
-      following: firestore.FieldValue.arrayRemove(userId)
+      following: firebase.firestore.FieldValue.arrayRemove(userId)
     });
     Alert.alert('Sucesso', 'Você deixou de seguir este usuário.');
     return true;

@@ -22,8 +22,8 @@ if (firebase.apps.length === 0) {
 }
 
 const auth = firebase.auth();
-const firestore = firebase.firestore(app); // Corrigido aqui
+const firestore = firebase.firestore(app);
 const storage = firebase.storage();
 const geoFirestore = new GeoFirestore(firestore);
 
-export { auth, firestore, storage, geoFirestore };
+export { auth, firestore, storage, geoFirestore, firebase };
