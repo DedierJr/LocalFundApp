@@ -1,3 +1,4 @@
+// LocalFundApp/services/chatService.ts
 import { firestore, auth } from '../firebase';
 import firebase from 'firebase/compat/app';
 import { Chat } from '../model/Chat';
@@ -78,49 +79,5 @@ export const openChat = async (userId: string, navigation: any) => {
     }
   } catch (error) {
     console.error('Erro ao abrir chat:', error);
-  }
-};
-
-export const followUser = async (userId: string, user: Usuario, navigation: any) => {
-  const currentUserId = auth.currentUser?.uid;
-
-  if (!currentUserId || !userId || !user) {
-    console.error('IDs de usuário inválidos.');
-    return;
-  }
-
-  try {
-    await firestore.collection('Usuario').doc(userId).update({
-      followers: firestore.FieldValue.arrayUnion(currentUserId)
-    });
-    await firestore.collection('Usuario').doc(currentUserId).update({
-      following: firestore.FieldValue.arrayUnion(userId)
-    });
-
-    sendNotification(userId, `começou a te seguir!`, 'followed');
-    Alert.alert('Sucesso', 'Você agora está seguindo este usuário.');
-  } catch (error) {
-    console.error('Erro ao seguir usuário:', error);
-  }
-};
-
-export const unfollowUser = async (userId: string, user: Usuario, navigation: any) => {
-  const currentUserId = auth.currentUser?.uid;
-
-  if (!currentUserId || !userId || !user) {
-    console.error('IDs de usuário inválidos.');
-    return;
-  }
-
-  try {
-    await firestore.collection('Usuario').doc(userId).update({
-      followers: firestore.FieldValue.arrayRemove(currentUserId)
-    });
-    await firestore.collection('Usuario').doc(currentUserId).update({
-      following: firestore.FieldValue.arrayRemove(userId)
-    });
-    Alert.alert('Sucesso', 'Você deixou de seguir este usuário.');
-  } catch (error) {
-    console.error('Erro ao deixar de seguir usuário:', error);
   }
 };

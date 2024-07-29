@@ -1,3 +1,4 @@
+// \LocalFundApp\screens\AddPost.tsx
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert, TouchableOpacity, Text } from 'react-native';
 import { auth, storage } from '../firebase';
@@ -66,17 +67,16 @@ const AddPost = () => {
   return (
     <View style={styles.container}>
       <View style={styles.main}>
-        <Text style={styles.title}>Novo Post</Text>
         <TextInput
           style={styles.postContentInput} 
-          placeholder="Digite seu post..."
+          placeholder="O que está acontecendo?"
           multiline={true}
           numberOfLines={4}
           value={content}
           onChangeText={setContent}
         />
         <TouchableOpacity onPress={pickImage} style={styles.imageButton}>
-            <Ionicons name="add-circle-outline" size={30} color="gray" style={styles.imagePreview} />
+            <Ionicons name="add-circle-outline" size={30} color="#C05E3D" style={styles.imagePreview} />
         </TouchableOpacity>
 
         <Button style={styles.criarPost} title="Criar Post" onPress={handleAddPost} />

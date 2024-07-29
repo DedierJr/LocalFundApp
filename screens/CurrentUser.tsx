@@ -1,4 +1,3 @@
-// LocalFundApp/screens/CurrentUser.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Alert, Image, TouchableOpacity } from 'react-native';
 import { Usuario } from '../model/Usuario';
@@ -13,6 +12,8 @@ const CurrentUser = ({ navigation }: any) => {
   const [bio, setBio] = useState<string>('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [followersCount, setFollowersCount] = useState<number>(0);
+  const [followingCount, setFollowingCount] = useState<number>(0);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
@@ -25,6 +26,7 @@ const CurrentUser = ({ navigation }: any) => {
               setCurrentUser(usuario);
               setNickname(usuario.nickname || '');
               setBio(usuario.bio || '');
+              fetchFollowersAndFollowingCounts(user.uid);
             } else {
               console.error("No such user document!");
             }
@@ -37,6 +39,15 @@ const CurrentUser = ({ navigation }: any) => {
 
     return () => unsubscribe();
   }, []);
+
+  const fetchFollowersAndFollowingCounts = async (userId: string) => {
+    const userDoc = await firestore.collection('Usuario').doc(userId).get();
+    const userData = userDoc.data();
+    if (userData) {
+      setFollowersCount(userData.followers ? userData.followers.length : 0);
+      setFollowingCount(userData.following ? userData.following.length : 0);
+    }
+  };
 
   if (!currentUser) {
     return <Text>Carregando...</Text>;
@@ -147,11 +158,11 @@ const CurrentUser = ({ navigation }: any) => {
       )}
       <View style={styles.buttons}>
         <Button
-          title="Seguidores"
+          title={`Seguidores (${followersCount})`}
           onPress={() => navigation.navigate('FollowersList', { userId: currentUser.id })}
         />
         <Button
-          title="Seguindo"
+          title={`Seguindo (${followingCount})`}
           onPress={() => navigation.navigate('FollowingList', { userId: currentUser.id })}
         />
       </View>

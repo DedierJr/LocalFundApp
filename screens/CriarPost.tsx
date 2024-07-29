@@ -1,18 +1,20 @@
-// LocalFundApp/screens/CriarPost.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { firestore, auth } from '../firebase';
+import { auth, storage } from '../firebase';
 import PostModel from '../model/Post';
 import { createPost } from '../services/postService';
 import firebase from 'firebase/compat/app';
-import styles from '../styles/layout/Registro';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
+import styles from '../styles/layout/AddPost';
 
 const CriarPost = () => {
   const [formPost, setFormPost] = useState<Partial<PostModel>>({
     content: '',
     location: undefined,
   });
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const navigation = useNavigation();
   const route = useRoute();
 
@@ -24,6 +26,7 @@ const CriarPost = () => {
       content: '',
       location: undefined,
     });
+    setImageUri(null);
     navigation.goBack(); // Voltar para a tela anterior
   };
 
@@ -35,11 +38,22 @@ const CriarPost = () => {
         return;
       }
 
+      let imageUrl = null;
+
+      if (imageUri) {
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        const uploadTask = storage.ref(`post-images/${userId}/${Date.now()}`).put(blob);
+        await uploadTask;
+        imageUrl = await uploadTask.snapshot.ref.getDownloadURL();
+      }
+
       const post = new PostModel({
         id: '',
         userId,
         ...formPost,
         createdAt: new Date(),
+        imageUrl,
         location: new firebase.firestore.GeoPoint(
           initialLocation.latitude,
           initialLocation.longitude
@@ -56,22 +70,43 @@ const CriarPost = () => {
     }
   };
 
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.main}>
-        <Text style={styles.title}>Novo Post</Text>
         <TextInput
           placeholder="Content"
           value={formPost.content || ''}
           onChangeText={content => setFormPost({ ...formPost, content })}
           style={styles.postContentInput}
         />
-        <TouchableOpacity onPress={salvar} style={styles.submitButton}>
-          <Text style={styles.submitButtonText}>Salvar</Text>
+        <TouchableOpacity onPress={pickImage} style={styles.imageButton}>
+          <Ionicons name="add-circle-outline" size={30} color="#C05E3D" />
         </TouchableOpacity>
+        {imageUri && (
+          <View style={styles.imagePreviewContainer}>
+            <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+          </View>
+        )}
       </View>
+        <TouchableOpacity onPress={salvar} style={styles.submitButton}>
+          <Text style={styles.criarPost}>Salvar</Text>
+        </TouchableOpacity>
     </View>
   );
 };
 
 export default CriarPost;
+

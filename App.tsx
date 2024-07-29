@@ -4,8 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native'; 
 import Routes from './routes';
 import { auth, firestore, storage } from './firebase'; 
+import { LogBox } from 'react-native';
+
 
 export default function App() {
+  LogBox.ignoreAllLogs();
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {

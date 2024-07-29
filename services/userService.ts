@@ -1,88 +1,52 @@
-// /LocalFundApp/services/userService.ts
+// LocalFundApp/services/userService.ts
 import { firestore, auth } from '../firebase';
 import { Usuario } from '../model/Usuario';
 import { sendNotification } from './notificationService';
+import { Alert } from 'react-native';
+import { findChatByParticipants, createChat } from '../services/chatService'; // Import both functions
 
-export const followUser = async (userId: string) => {
+export const followUser = async (userId: string, user: Usuario, navigation: any) => {
   const currentUserId = auth.currentUser?.uid;
 
-  if (!currentUserId || !userId) {
+  if (!currentUserId || !userId || !user) {
     console.error('IDs de usuário inválidos.');
     return false;
   }
 
   try {
-    const userRef = firestore.collection('Usuario').doc(userId);
-    const currentUserRef = firestore.collection('Usuario').doc(currentUserId);
+    await firestore.collection('Usuario').doc(userId).update({
+      followers: firestore.FieldValue.arrayUnion(currentUserId)
+    });
+    await firestore.collection('Usuario').doc(currentUserId).update({
+      following: firestore.FieldValue.arrayUnion(userId)
+    });
 
-    const userDoc = await userRef.get();
-    const currentUserDoc = await currentUserRef.get();
-
-    if (!userDoc.exists || !currentUserDoc.exists) {
-      console.error('Usuário não encontrado.');
-      return false;
-    }
-
-    const user = new Usuario(userDoc.data());
-    const currentUser = new Usuario(currentUserDoc.data());
-
-    if (!user.followers.includes(currentUserId)) {
-      await userRef.update({
-        followers: [...user.followers, currentUserId],
-      });
-      await currentUserRef.update({
-        following: [...currentUser.following, userId],
-      });
-
-      sendNotification(userId, `começou a te seguir!`, 'followed');
-
-      return true;
-    } else {
-      console.error('O usuário já está sendo seguido.');
-      return false;
-    }
+    sendNotification(userId, `começou a te seguir!`, 'followed');
+    Alert.alert('Sucesso', 'Você agora está seguindo este usuário.');
+    return true;
   } catch (error) {
     console.error('Erro ao seguir usuário:', error);
     return false;
   }
 };
 
-export const unfollowUser = async (userId: string) => {
+export const unfollowUser = async (userId: string, user: Usuario, navigation: any) => {
   const currentUserId = auth.currentUser?.uid;
 
-  if (!currentUserId || !userId) {
+  if (!currentUserId || !userId || !user) {
     console.error('IDs de usuário inválidos.');
     return false;
   }
 
   try {
-    const userRef = firestore.collection('Usuario').doc(userId);
-    const currentUserRef = firestore.collection('Usuario').doc(currentUserId);
-
-    const userDoc = await userRef.get();
-    const currentUserDoc = await currentUserRef.get();
-
-    if (!userDoc.exists || !currentUserDoc.exists) {
-      console.error('Usuário não encontrado.');
-      return false;
-    }
-
-    const user = new Usuario(userDoc.data());
-    const currentUser = new Usuario(currentUserDoc.data());
-
-    if (user.followers.includes(currentUserId)) {
-      await userRef.update({
-        followers: user.followers.filter(followerId => followerId !== currentUserId),
-      });
-      await currentUserRef.update({
-        following: currentUser.following.filter(followingId => followingId !== userId),
-      });
-
-      return true;
-    } else {
-      console.error('O usuário não está sendo seguido.');
-      return false;
-    }
+    await firestore.collection('Usuario').doc(userId).update({
+      followers: firestore.FieldValue.arrayRemove(currentUserId)
+    });
+    await firestore.collection('Usuario').doc(currentUserId).update({
+      following: firestore.FieldValue.arrayRemove(userId)
+    });
+    Alert.alert('Sucesso', 'Você deixou de seguir este usuário.');
+    return true;
   } catch (error) {
     console.error('Erro ao deixar de seguir usuário:', error);
     return false;
@@ -204,5 +168,30 @@ export const getFollowingUsers = async () => {
   } catch (error) {
     console.error('Erro ao obter usuários seguidos:', error);
     return [];
+  }
+};
+
+export const openChat = async (userId: string, navigation: any) => {
+  const currentUserId = auth.currentUser?.uid;
+
+  if (!currentUserId || !userId) {
+    console.error('IDs de usuário inválidos.');
+    return;
+  }
+
+  try {
+    const existingChat = await findChatByParticipants([userId, currentUserId]);
+    if (existingChat) {
+      navigation.navigate('Chat', { chatId: existingChat.id, userId: currentUserId });
+    } else {
+      const newChatId = await createChat([userId, currentUserId]);
+      if (newChatId) {
+        navigation.navigate('Chat', { chatId: newChatId, userId: currentUserId });
+      } else {
+        console.error('Falha ao criar um novo chat.');
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao abrir chat:', error);
   }
 };

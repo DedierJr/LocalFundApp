@@ -7,11 +7,12 @@ import { updatePost, likePost, unlikePost, addComment } from '../services/postSe
 import { getUserById } from '../services/userService';
 import { auth } from '../firebase';
 import Usuario from '../model/Usuario';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 interface DetalhesPostProps {
   route: {
     params: {
-      postId: string; // Include the postId
+      postId: string;
       post: PostModel; 
       onVoltar: () => void;
     };
@@ -29,16 +30,11 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ route }) => {
   const [commentAuthors, setCommentAuthors] = useState<{ [userId: string]: Usuario }>({});
 
   useEffect(() => {
-    // Função assíncrona para buscar dados
     const fetchData = async () => {
-      // Make sure the post is defined before accessing its properties
       if (post) {
-        // Check if the user has liked the post
         if (currentUser && post.likes) {
           setIsLiked(post.likes.includes(currentUser.uid));
         }
-
-        // Fetch the authors of the comments
         if (post.comments) {
           const userIds = new Set(post.comments.map(comment => comment.userId));
           const fetchedUsers: { [userId: string]: Usuario } = {};
@@ -49,18 +45,15 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ route }) => {
                 fetchedUsers[userId] = user;
               }
             } catch (error) {
-              console.error("Error fetching user:", error); 
-              // Handle the error appropriately (e.g., display an error message)
+              console.error("Error fetching user:", error);
             }
           }
           setCommentAuthors(fetchedUsers);
         }
       }
     };
-
-    // Chama a função assíncrona dentro do useEffect
-    fetchData(); 
-  }, [post, currentUser]); // Dependências do efeito
+    fetchData();
+  }, [post, currentUser]);
 
   const irParaPerfil = () => {
     navigation.navigate('UserProfile', { userId: post.userId });
@@ -79,59 +72,42 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ route }) => {
 
   const handleLikePress = async () => {
     if (isLiked) {
-      await unlikePost(postId); // Use postId da rota
+      await unlikePost(postId);
     } else {
-      await likePost(postId); // Use postId da rota
+      await likePost(postId);
     }
     setIsLiked(!isLiked);
   };
 
   const handleAddComment = async () => {
     if (newComment.trim()) {
-      await addComment(postId, newComment); // Use postId da rota
+      await addComment(postId, newComment);
       setNewComment('');
     } else {
       Alert.alert('Erro', 'O comentário não pode estar vazio.');
     }
   };
 
-  // Convertendo o timestamp para Date se necessário
   const createdAt = post.createdAt instanceof Date ? post.createdAt : post.createdAt.toDate();
 
   return (
     <View style={styles.container}>
       <View style={styles.postContainer}>
-        {post && (
-          <Text style={styles.postContent}>
-            {isEditing ? (
-              <TextInput
-                style={styles.editInput}
-                value={editedContent}
-                onChangeText={setEditedContent}
-                multiline
-              />
-            ) : (
-              post.content
-            )}
-          </Text>
-        )}
-        {isEditing ? (
-          <TouchableOpacity onPress={handleSaveEdit} style={styles.button}>
-            <Text style={styles.buttonText}>Salvar</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity onPress={handleEditPress} style={styles.button}>
-            <Text style={styles.buttonText}>Editar</Text>
-          </TouchableOpacity>
-        )}
         {post.userId && commentAuthors[post.userId] && (
           <TouchableOpacity onPress={irParaPerfil} style={styles.profileContainer}>
             <Image source={{ uri: commentAuthors[post.userId].profilePicture }} style={styles.profilePicture} />
             <Text style={styles.username}>{commentAuthors[post.userId].username || commentAuthors[post.userId].nickname}</Text>
           </TouchableOpacity>
         )}
+        <Text style={styles.postContent}>{post.content}</Text>
+        {post.imageUrl ? (
+          <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
+        ) : null}
         <TouchableOpacity onPress={handleLikePress} style={styles.likeButton}>
-          <Text style={styles.likeButtonText}>{isLiked ? 'Descurtir' : 'Curtir'}</Text>
+          <View style={styles.likes}>
+            <Ionicons name={isLiked ? "heart" : "heart-outline"} size={24} color="#C05E3D" />
+            <Text style={styles.likeCount}>{post.likes.length}</Text>
+          </View>
         </TouchableOpacity>
         <Text style={styles.createdAt}>Criado em: {createdAt.toLocaleDateString()}</Text>
       </View>
@@ -160,9 +136,6 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ route }) => {
           <Text style={styles.buttonText}>Comentar</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity onPress={onVoltar} style={styles.button}>
-        <Text style={styles.buttonText}>Voltar</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -170,57 +143,73 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 10,
+    backgroundColor: '#EFEDE3',
+    marginTop: 35,
   },
   postContainer: {
-    marginBottom: 16,
-  },
-  postContent: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  editInput: {
-    borderColor: '#ccc',
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: '#F8F6F1',
+    borderRadius: 5,
     borderWidth: 1,
-    padding: 8,
-    marginBottom: 8,
-  },
-  button: {
-    backgroundColor: '#007bff',
-    padding: 12,
-    marginVertical: 8,
-    borderRadius: 4,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
+    borderColor: '#DDD',
+    shadowColor: '#000', // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 0.1, // Opacidade da sombra
+    shadowRadius: 3.84, // Raio da sombra
+    elevation: 5, // Elevação para Android
   },
   profileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 5,
   },
   profilePicture: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginRight: 8,
+    marginRight: 10,
   },
   username: {
+    fontSize: 14,
+    color: '#555',
+    fontWeight: 'bold',
+  },
+  postContent: {
     fontSize: 16,
+    marginBottom: 5,
+  },
+  postImage: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
+    marginBottom: 10,
   },
   likeButton: {
     marginTop: 8,
   },
   likeButtonText: {
-    color: '#007bff',
+    color: '#C05E3D',
     fontSize: 16,
   },
   commentsContainer: {
     marginTop: 16,
   },
   comment: {
-    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: '#F8F6F1',
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#DDD',
+    shadowColor: '#000', // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 0.1, // Opacidade da sombra
+    shadowRadius: 3.84, // Raio da sombra
+    elevation: 5, // Elevação para Android
   },
   commentAuthorContainer: {
     flexDirection: 'row',
@@ -239,17 +228,36 @@ const styles = StyleSheet.create({
   },
   commentContent: {
     fontSize: 14,
+    marginLeft: 15,
   },
   commentInput: {
     borderColor: '#ccc',
     borderWidth: 1,
-    padding: 8,
+    padding: 18,
     marginBottom: 8,
+  },
+  button: {
+    padding: 12,
+    marginVertical: 8,
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#C05E3D',
+    fontSize: 16,
   },
   createdAt: {
     fontSize: 12,
     color: '#888',
   },
+  likes: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  likeCount: {
+    marginLeft: 5,
+  },
 });
+
 
 export default DetalhesPost;

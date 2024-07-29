@@ -63,6 +63,13 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     marginBottom: 10,
   },
+    likes: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  likeCount: {
+    marginLeft: 5,
+  },
 });
 
 export default styles;

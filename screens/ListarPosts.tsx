@@ -7,7 +7,8 @@ import PostModel from '../model/Post';
 import Usuario from '../model/Usuario';
 import AddPostBtn from '../components/AddPostBtn';
 import { getPosts, getUsers, getFollowingUsers } from '../services/userService';
-import { deletePost } from '../services/postService';
+import { deletePost, likePost, unlikePost } from '../services/postService';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from '../styles/layout/ListarPosts';
 
 interface ListarPostsProps {
@@ -63,7 +64,7 @@ const ListarPosts: React.FC<ListarPostsProps> = ({ userId, showFollowingButton =
     }
   }, [currentUser]);
 
-  const toggleShowFollowingPosts = async () => {
+  const toggleShowFollowingPosts = () => {
     setShowFollowingPosts(prevState => !prevState);
   };
 
@@ -95,18 +96,27 @@ const ListarPosts: React.FC<ListarPostsProps> = ({ userId, showFollowingButton =
     }
   };
 
+  const handleLikePress = async (post: PostModel) => {
+    if (post.likes.includes(currentUser?.uid)) {
+      await unlikePost(post.id);
+    } else {
+      await likePost(post.id);
+    }
+    setPosts(prevPosts => prevPosts.map(p => p.id === post.id ? { ...p, likes: post.likes.includes(currentUser?.uid) ? post.likes.filter(uid => uid !== currentUser?.uid) : [...post.likes, currentUser?.uid] } : p));
+  };
+
   return (
     <View style={styles.container}>
       {showFollowingButton && (
         <View style={styles.filterButtonsContainer}>
           <TouchableOpacity
-            style={[styles.filterButton, !showFollowingPosts && styles.activeButton]} // Adiciona a classe activeButton se não estiver mostrando os posts de quem segue
+            style={[styles.filterButton, !showFollowingPosts && styles.activeButton]}
             onPress={() => setShowFollowingPosts(false)}
           >
             <Text style={styles.filterButtonText}>Todos</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.filterButton, showFollowingPosts && styles.activeButton]} // Adiciona a classe activeButton se estiver mostrando os posts de quem segue
+            style={[styles.filterButton, showFollowingPosts && styles.activeButton]}
             onPress={() => setShowFollowingPosts(true)}
           >
             <Text style={styles.filterButtonText}>Seguindo</Text>
@@ -114,7 +124,7 @@ const ListarPosts: React.FC<ListarPostsProps> = ({ userId, showFollowingButton =
         </View>
       )}
       <FlatList
-        data={showFollowingPosts ? posts.filter(post => followingIds.includes(post.userId)) : posts}
+        data={showFollowingPosts ? posts.filter(post => followingIds.includes(post.userId) && post.userId !== currentUser?.uid) : posts}
         keyExtractor={(item) => item.id || Math.random().toString()}
         renderItem={({ item }) => (
           <View style={styles.postContainer}>
@@ -136,6 +146,12 @@ const ListarPosts: React.FC<ListarPostsProps> = ({ userId, showFollowingButton =
                 <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
               ) : null}
               <Text style={styles.postContent}>{item.content}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleLikePress(item)} style={styles.likeButton}>
+              <View style={styles.likes}>
+                <Ionicons name={item.likes.includes(currentUser?.uid) ? "heart" : "heart-outline"} size={24} color="#C05E3D" />
+                <Text style={styles.likeCount}>{item.likes.length}</Text>
+              </View>
             </TouchableOpacity>
           </View>
         )}
