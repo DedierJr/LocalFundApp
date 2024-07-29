@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
   },
   filterButtonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around', // Ajusta para distribuir os botões
+    justifyContent: 'space-around',
     alignItems: 'center',
     marginBottom: 10,
   },
@@ -17,14 +17,14 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     alignItems: 'center',
-    flex: 1, // Divide o espaço igualmente entre os botões
+    flex: 1,
     margin: 5,
   },
   filterButtonText: {
     fontSize: 16,
-    color: '#C05E3D', // Cor do texto
+    color: '#C05E3D',
   },
-    activeButton: {
+  activeButton: {
     borderColor: 'transparent',
     borderWidth: 3,
     borderBottomColor: '#C05E3D',
@@ -59,8 +59,8 @@ const styles = StyleSheet.create({
   },
   postImage: {
     width: '100%',
-    height: 200, 
-    resizeMode: 'cover', 
+    height: 200,
+    resizeMode: 'cover',
     marginBottom: 10,
   },
 });

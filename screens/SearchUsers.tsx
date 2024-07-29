@@ -1,6 +1,6 @@
 // /home/aluno/Documentos/DedierJr/LocalFundApp/screens/SearchUsers.tsx
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, FlatList, Text, TouchableOpacity } from 'react-native';
+import { View, TextInput, FlatList, Text, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../firebase';
 import { searchUsers, isFollowing, followUser, unfollowUser } from '../services/userService';
@@ -58,6 +58,7 @@ const SearchUsers = () => {
     return (
       <View style={styles.resultContainer}>
         <TouchableOpacity onPress={() => handleNavigateToProfile(item.id)}>
+          <Image source={{ uri: item.fotoPerfil }} style={styles.profileImage} />
           <Text style={styles.result}>{item.username}</Text>
         </TouchableOpacity>
         {isFollowingUser ? (

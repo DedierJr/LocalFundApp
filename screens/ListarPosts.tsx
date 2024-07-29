@@ -115,14 +115,24 @@ const ListarPosts: React.FC<ListarPostsProps> = ({ userId }) => {
         keyExtractor={(item) => item.id || Math.random().toString()}
         renderItem={({ item }) => (
           <View style={styles.postContainer}>
+            <View style={styles.postHeader}>
+              <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
+                <Image 
+                  source={{ uri: users[item.userId]?.fotoPerfil || 'https://via.placeholder.com/40' }}
+                  style={styles.postAuthorProfileImage}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
+                <Text style={styles.postAuthorNickname}>
+                  {users[item.userId]?.nickname || users[item.userId]?.username}
+                </Text>
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity onPress={() => navigateToPostDetails(item.id)}>
-              {item.imageUrl ? ( // Verifica se há imagem no post
+              {item.imageUrl ? (
                 <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
               ) : null}
               <Text style={styles.postContent}>{item.content}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigateToUserProfile(item.userId)}>
-              <Text style={styles.postAuthorNickname}>{users[item.userId]?.nickname || users[item.userId]?.username}</Text>
             </TouchableOpacity>
           </View>
         )}
