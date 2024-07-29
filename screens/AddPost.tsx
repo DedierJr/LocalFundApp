@@ -65,21 +65,22 @@ const AddPost = () => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Digite seu post..."
-        multiline={true}
-        numberOfLines={4}
-        value={content}
-        onChangeText={setContent}
-      />
+      <View style={styles.main}>
+        <Text style={styles.title}>Novo Post</Text>
+        <TextInput
+          style={styles.postContentInput} 
+          placeholder="Digite seu post..."
+          multiline={true}
+          numberOfLines={4}
+          value={content}
+          onChangeText={setContent}
+        />
+        <TouchableOpacity onPress={pickImage} style={styles.imageButton}>
+            <Ionicons name="add-circle-outline" size={30} color="gray" style={styles.imagePreview} />
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={pickImage} style={styles.imageButton}>
-        <Ionicons name="add-circle-outline" size={30} color="gray" style={styles.imagePreview} />
-        <Text style={styles.imageButtonText}>Adicionar Imagem</Text>
-      </TouchableOpacity>
-
-      <Button title="Criar Post" onPress={handleAddPost} />
+        <Button style={styles.criarPost} title="Criar Post" onPress={handleAddPost} />
+      </View>
     </View>
   );
 };

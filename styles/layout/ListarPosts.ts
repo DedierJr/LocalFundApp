@@ -5,22 +5,34 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
+    backgroundColor: '#EFEDE3',
   },
-  filterButton: {
-    padding: 10,
-    backgroundColor: '#007BFF',
-    borderRadius: 5,
+  filterButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around', // Ajusta para distribuir os botões
     alignItems: 'center',
     marginBottom: 10,
   },
+  filterButton: {
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    flex: 1, // Divide o espaço igualmente entre os botões
+    margin: 5,
+  },
   filterButtonText: {
-    color: '#FFF',
     fontSize: 16,
+    color: '#C05E3D', // Cor do texto
+  },
+    activeButton: {
+    borderColor: 'transparent',
+    borderWidth: 3,
+    borderBottomColor: '#C05E3D',
   },
   postContainer: {
     marginBottom: 15,
     padding: 10,
-    backgroundColor: '#FFF',
+    backgroundColor: '#F8F6F1',
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#DDD',
