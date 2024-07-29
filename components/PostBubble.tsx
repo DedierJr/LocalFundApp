@@ -1,26 +1,27 @@
-// LocalFundApp/components/PostBubble.tsx
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Marker } from 'react-native-maps';
-import { useNavigation } from '@react-navigation/native';
 import PostModel from '../model/Post';
-import styles from '../styles/components/PostBubble';
+import { useNavigation } from '@react-navigation/native';
 
 interface PostBubbleProps {
   post: PostModel;
-  onVoltar: () => void;
+  // Adiciona a prop onVoltar
+  onVoltar: () => void; 
 }
 
 const PostBubble: React.FC<PostBubbleProps> = ({ post, onVoltar }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
-    if (post) {
-      navigation.navigate('DetalhesPost', {
-        post,
-        postId: post.id,
-        onVoltar
-      });
+    // Verificando se o post está definido antes de navegar
+    if (post) { 
+      // Navegando para DetalhesPost, passando o post como parâmetro
+      navigation.navigate('DetalhesPost', { 
+        post, postId: post.id ,
+        // Passando a função onVoltar para DetalhesPost
+        onVoltar 
+      }); 
     } else {
       console.error('Post está indefinido');
     }
@@ -37,5 +38,15 @@ const PostBubble: React.FC<PostBubbleProps> = ({ post, onVoltar }) => {
     </Marker>
   );
 };
+
+const styles = StyleSheet.create({
+  postBubble: {
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ccc'
+  }
+});
 
 export default PostBubble;

@@ -1,3 +1,4 @@
+// LocalFundApp\styles\layout\DetalhesPost.ts
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
@@ -6,7 +7,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   postContainer: {
-    marginBottom: 16,
+    marginBottom: 0,
+    marginTop: 80,
   },
   postContent: {
     fontSize: 16,

@@ -1,6 +1,6 @@
-// LocalFundApp/services/postService.ts
-import { firestore } from '../firebase';
-import PostModel from '../model/Post';
+// /LocalFundApp/services/postService.ts
+import { firestore, geoFirestore, auth } from "../firebase";
+import PostModel from "../model/Post";
 import firebase from 'firebase/compat/app';
 
 export const findPostsNearLocation = async (
@@ -104,37 +104,5 @@ export const deletePost = async (postId: string) => {
   } catch (error) {
     console.error("Erro ao deletar post:", error);
     throw error; 
-  }
-};
-
-export const getProfilePictureByUserId = async (userId: string): Promise<string | null> => {
-  try {
-    const userDoc = await firestore.collection('Usuario').doc(userId).get();
-    if (userDoc.exists) {
-      const userData = userDoc.data() as Usuario;
-      return userData.fotoPerfil; // Retorna a URL da foto de perfil
-    } else {
-      console.error('Usuário não encontrado:', userId);
-      return null;
-    }
-  } catch (error) {
-    console.error('Erro ao obter a foto de perfil do usuário:', error);
-    return null;
-  }
-};
-
-export const getNicknameByUserId = async (userId: string): Promise<string | null> => {
-  try {
-    const userDoc = await firestore.collection('Usuario').doc(userId).get();
-    if (userDoc.exists) {
-      const userData = userDoc.data() as Usuario;
-      return userData.nickname; // Retorna o nickname
-    } else {
-      console.error('Usuário não encontrado:', userId);
-      return null;
-    }
-  } catch (error) {
-    console.error('Erro ao obter o nickname do usuário:', error);
-    return null;
   }
 };
