@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { firestore, auth } from '../firebase';
-import meuestilo from '../meuestilo';
 import PostModel from '../model/Post';
 import { createPost } from '../services/postService';
 import firebase from 'firebase/compat/app';
@@ -18,7 +17,7 @@ const CriarPost = () => {
   const route = useRoute();
 
   const initialLocation = route.params.initialLocation;
-  const onPostCreated = route.params.onPostCreated; 
+  const onPostCreated = route.params.onPostCreated;
 
   const limparFormulario = () => {
     setFormPost({
@@ -50,7 +49,7 @@ const CriarPost = () => {
       await createPost(post);
       Alert.alert('Sucesso', 'Post adicionado com sucesso');
       limparFormulario();
-      onPostCreated(); 
+      onPostCreated();
     } catch (error) {
       Alert.alert('Erro', 'Ocorreu um erro ao salvar o post.');
       console.error('Erro ao salvar o post:', error);
@@ -65,16 +64,10 @@ const CriarPost = () => {
           placeholder="Content"
           value={formPost.content || ''}
           onChangeText={content => setFormPost({ ...formPost, content })}
-          style={styles.postContentInput} 
+          style={styles.postContentInput}
         />
-        <TouchableOpacity
-          onPress={salvar}
-          style={styles.button}
-        >
-          <Text style={styles.buttonText}>Salvar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={limparFormulario} style={styles.button}>
-          <Text style={styles.buttonText}>Cancelar</Text>
+        <TouchableOpacity onPress={salvar} style={styles.submitButton}>
+          <Text style={styles.submitButtonText}>Salvar</Text>
         </TouchableOpacity>
       </View>
     </View>
