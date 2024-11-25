@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import PostModel from '../model/Post';
-import { updatePost, likePost, unlikePost, addComment } from '../services/postService';
+import { updatePost, likePost, unlikePost, addComment, getPostById } from '../services/postService'; // Importe getPostById
 import { getUserById } from '../services/userService';
 import { auth } from '../firebase';
 import Usuario from '../model/Usuario';
@@ -13,25 +13,30 @@ interface DetalhesPostProps {
   route: {
     params: {
       postId: string;
-      post: PostModel; 
+      post: PostModel;
       onVoltar: () => void;
     };
   };
 }
 
 const DetalhesPost: React.FC<DetalhesPostProps> = ({ route }) => {
-  const { postId, post, onVoltar } = route.params;
+  const { postId, onVoltar } = route.params; // Remova post daqui
   const navigation = useNavigation();
+  const [post, setPost] = useState<PostModel | null>(null); // Adicione um estado para post
   const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState(post?.content || '');
+  const [editedContent, setEditedContent] = useState('');
   const [newComment, setNewComment] = useState('');
   const [isLiked, setIsLiked] = useState(false);
   const currentUser = auth.currentUser;
   const [commentAuthors, setCommentAuthors] = useState<{ [userId: string]: Usuario }>({});
+  const [refreshKey, setRefreshKey] = useState(0); // Adicione um estado para forçar a re-renderização
 
   useEffect(() => {
     const fetchData = async () => {
+      const post = await getPostById(postId); // Busque o post por ID
       if (post) {
+        setPost(post);
+        setEditedContent(post.content || '');
         if (currentUser && post.likes) {
           setIsLiked(post.likes.includes(currentUser.uid));
         }
@@ -53,7 +58,7 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ route }) => {
       }
     };
     fetchData();
-  }, [post, currentUser]);
+  }, [postId, currentUser, refreshKey]); // Adicione refreshKey como dependência
 
   const irParaPerfil = () => {
     navigation.navigate('UserProfile', { userId: post.userId });
@@ -61,32 +66,42 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ route }) => {
 
   const handleEditPress = () => {
     setIsEditing(true);
-    setEditedContent(post.content);
   };
 
   const handleSaveEdit = async () => {
-    const updatedPost = new PostModel({ ...post, content: editedContent });
-    await updatePost(updatedPost);
-    setIsEditing(false);
+    if (post) {
+      const updatedPost = new PostModel({ ...post, content: editedContent });
+      await updatePost(updatedPost);
+      setIsEditing(false);
+      setRefreshKey(prev => prev + 1); // Forçar re-renderização
+    }
   };
 
   const handleLikePress = async () => {
-    if (isLiked) {
-      await unlikePost(postId);
-    } else {
-      await likePost(postId);
+    if (post) {
+      if (isLiked) {
+        await unlikePost(postId);
+      } else {
+        await likePost(postId);
+      }
+      setIsLiked(!isLiked);
+      setRefreshKey(prev => prev + 1); // Forçar re-renderização
     }
-    setIsLiked(!isLiked);
   };
 
   const handleAddComment = async () => {
-    if (newComment.trim()) {
+    if (newComment.trim() && post) {
       await addComment(postId, newComment);
       setNewComment('');
+      setRefreshKey(prev => prev + 1); // Forçar re-renderização
     } else {
       Alert.alert('Erro', 'O comentário não pode estar vazio.');
     }
   };
+
+  if (!post) {
+    return <Text>Carregando...</Text>;
+  }
 
   const createdAt = post.createdAt instanceof Date ? post.createdAt : post.createdAt.toDate();
 
@@ -99,7 +114,20 @@ const DetalhesPost: React.FC<DetalhesPostProps> = ({ route }) => {
             <Text style={styles.username}>{commentAuthors[post.userId].username || commentAuthors[post.userId].nickname}</Text>
           </TouchableOpacity>
         )}
-        <Text style={styles.postContent}>{post.content}</Text>
+        {isEditing ? (
+          <>
+            <TextInput
+              value={editedContent}
+              onChangeText={setEditedContent}
+              style={styles.editInput}
+            />
+            <TouchableOpacity onPress={handleSaveEdit} style={styles.saveButton}>
+              <Text style={styles.saveButtonText}>Salvar</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <Text style={styles.postContent}>{post.content}</Text>
+        )}
         {post.imageUrl ? (
           <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
         ) : null}
@@ -154,11 +182,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#DDD',
-    shadowColor: '#000', // Cor da sombra
-    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
-    shadowOpacity: 0.1, // Opacidade da sombra
-    shadowRadius: 3.84, // Raio da sombra
-    elevation: 5, // Elevação para Android
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   profileContainer: {
     flexDirection: 'row',
@@ -205,11 +233,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#DDD',
-    shadowColor: '#000', // Cor da sombra
-    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
-    shadowOpacity: 0.1, // Opacidade da sombra
-    shadowRadius: 3.84, // Raio da sombra
-    elevation: 5, // Elevação para Android
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   commentAuthorContainer: {
     flexDirection: 'row',
@@ -257,7 +285,22 @@ const styles = StyleSheet.create({
   likeCount: {
     marginLeft: 5,
   },
+  editInput: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 8,
+  },
+  saveButton: {
+    backgroundColor: '#C05E3D',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
 });
-
 
 export default DetalhesPost;
